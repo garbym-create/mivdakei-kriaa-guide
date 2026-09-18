@@ -1,0 +1,1376 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מדריך הקמה: מבדקי קריאה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Secular+One&display=swap">
+<style>
+:root{
+  --ground:#EEF2F0; --surface:#FFFFFF; --ink:#1C2A3A; --muted:#5B6B78; --line:#D5DEDA;
+  --accent:#0E7466; --accent-soft:#DCEFEA; --warn:#FFF3D6; --warn-ink:#7A4B00; --code:#F6F8F7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#121A20; --surface:#1B252D; --ink:#E6EDF0; --muted:#98A8B3; --line:#2E3C46;
+    --accent:#3CC1AA; --accent-soft:#17362F; --warn:#3A2F17; --warn-ink:#F5CF7A; --code:#141D23;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#121A20; --surface:#1B252D; --ink:#E6EDF0; --muted:#98A8B3; --line:#2E3C46;
+  --accent:#3CC1AA; --accent-soft:#17362F; --warn:#3A2F17; --warn-ink:#F5CF7A; --code:#141D23;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:17px/1.65 "Assistant",Arial,sans-serif;direction:rtl;padding-inline:16px;padding-block:0 48px}
+.wrap{max-width:760px;margin:0 auto}
+header{padding-block:32px 8px}
+.eyebrow{font-size:.8rem;letter-spacing:.06em;color:var(--accent);font-weight:700}
+h1{font:400 clamp(1.7rem,5vw,2.3rem)/1.2 "Secular One","Assistant",sans-serif;margin:6px 0 10px;text-wrap:balance}
+.lead{color:var(--muted);max-width:60ch;margin:0}
+.facts{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 6px;padding:0;list-style:none}
+.facts li{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 14px;font-size:.9rem}
+.facts b{color:var(--accent)}
+nav.toc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:20px 0}
+nav.toc ol{margin:0;padding-inline-start:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2px 16px}
+nav.toc a{color:var(--ink);text-decoration:none}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--accent);text-decoration:underline}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 18px 8px;margin:14px 0;scroll-margin-top:12px}
+.step h2{display:flex;align-items:center;gap:12px;font:400 1.25rem "Secular One","Assistant",sans-serif;margin:0 0 8px}
+.num{flex:none;width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font:400 1.05rem "Secular One",sans-serif}
+.step ol,.step ul{padding-inline-start:22px;margin:6px 0 12px}
+.step li{margin-bottom:6px}
+kbd{font:600 .82rem ui-monospace,Consolas,monospace;background:var(--code);border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:0 6px;white-space:nowrap}
+.ui{font-weight:700;color:var(--accent)}
+.note{background:var(--warn);color:var(--warn-ink);border-radius:10px;padding:10px 14px;margin:10px 0 14px;font-size:.95rem}
+.note b{color:inherit}
+.tip{background:var(--accent-soft);border-radius:10px;padding:10px 14px;margin:10px 0 14px;font-size:.95rem}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:8px 0 14px}
+.col{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.col .tag{display:inline-block;font:700 .8rem "Assistant",sans-serif;background:var(--ink);color:var(--surface);border-radius:6px;padding:0 8px;margin-bottom:4px}
+.codebox{border:1px solid var(--line);border-radius:12px;margin:10px 0 16px;overflow:hidden}
+.codebar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:var(--code);border-bottom:1px solid var(--line)}
+.codebar strong{font-family:ui-monospace,Consolas,monospace;font-size:.9rem;direction:ltr}
+.codebar span{font-size:.85rem;color:var(--muted)}
+button.copy{border:0;background:var(--accent);color:#fff;border-radius:10px;padding:8px 16px;font:700 .95rem "Assistant",sans-serif;cursor:pointer}
+button.copy.done{background:var(--ink)}
+button.copy:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+textarea.code{display:block;width:100%;height:150px;border:0;resize:vertical;background:var(--surface);color:var(--muted);font:12px/1.5 ui-monospace,Consolas,monospace;padding:10px 12px;direction:ltr;text-align:left}
+figure{margin:6px 0 16px}
+figure img{display:block;width:100%;max-width:100%;height:auto;border:1px solid var(--line);border-radius:10px}
+figcaption{font-size:.85rem;color:var(--muted);margin-top:6px}
+details.ideas{background:var(--surface);border:1px solid var(--line);border-radius:16px;margin:22px 0 0}
+details.ideas>summary{list-style:none;cursor:pointer;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;font:400 1.2rem "Secular One","Assistant",sans-serif}
+details.ideas>summary::-webkit-details-marker{display:none}
+details.ideas>summary::after{content:"+";flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font:700 1.2rem "Assistant",sans-serif}
+details.ideas[open]>summary::after{content:"−"}
+details.ideas>summary:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;border-radius:16px}
+.ideas-body{padding:0 18px 14px}
+.ideas-body h3{font:400 1.05rem "Secular One","Assistant",sans-serif;margin:18px 0 6px}
+.idea-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.idea-grid .col h4{margin:0 0 4px;font-size:1rem}
+.idea-grid .col ul{margin:0;padding-inline-start:18px;font-size:.93rem}
+.idea-grid .col li{margin-bottom:4px}
+.prompt{background:var(--code);border:1px solid var(--line);border-radius:12px;padding:12px 14px;white-space:pre-wrap;font-size:.95rem;margin:6px 0 8px}
+.prompt-bar{display:flex;justify-content:flex-start;margin-bottom:12px}
+footer{color:var(--muted);text-align:center;font-size:.85rem;padding-top:22px}
+.contact{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin:22px 0 0;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.contact h2{font:400 1.15rem "Secular One","Assistant",sans-serif;margin:0 0 2px}
+.contact p{margin:0;color:var(--muted);font-size:.95rem}
+a.wa{display:inline-flex;align-items:center;gap:8px;background:#1F8F4E;color:#fff;text-decoration:none;border-radius:12px;padding:10px 18px;font-weight:700}
+a.wa:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+a.wa svg{width:20px;height:20px;fill:currentColor}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">מדריך הקמה</div>
+  <h1>אפליקציית מבדקי קריאה: איך מקימים אותה מאפס</h1>
+  <p class="lead">האפליקציה מאפשרת למורות להזין מבדקי קריאה מהנייד, והנתונים נשמרים בגיליון Google נפרד לכל כיתה. ההקמה נעשית פעם אחת, בידי רכזת או מנהלת.</p>
+  <ul class="facts">
+    <li>זמן: <b>כ-15 דקות</b></li>
+    <li>צריך: <b>חשבון Google הארגוני של בית הספר</b></li>
+    <li>ידע בתכנות: <b>לא צריך</b></li>
+  </ul>
+</header>
+
+<div class="note"><b>לפני שמתחילים:</b> מי שעוקבת אחרי המדריך יוצרת מערכת נפרדת משלה, עם תיקיות ונתונים משלה. מורות שרק מזינות נתונים <b>לא צריכות לבנות כלום</b>: הן מקבלות את הקישור ונכנסות לרשימת המורות המורשות.</div>
+
+<nav class="toc" aria-label="שלבי המדריך">
+  <ol>
+    <li><a href="#s1">גיליון מרכזי</a></li>
+    <li><a href="#s2">הדבקת הקוד</a></li>
+    <li><a href="#s3">הכנת ההגדרות</a></li>
+    <li><a href="#s4">יצירת התיקיות</a></li>
+    <li><a href="#s5">פרסום האפליקציה</a></li>
+    <li><a href="#s6">בדיקה</a></li>
+    <li><a href="#s7">שימוש שוטף</a></li>
+    <li><a href="#ideas">רעיונות לכלים נוספים</a></li>
+  </ol>
+</nav>
+
+<section class="step" id="s1">
+  <h2><span class="num">1</span>גיליון מרכזי</h2>
+  <ol>
+    <li>נכנסים ל-Google Drive <b>עם החשבון הארגוני של בית הספר</b>, לא עם Gmail פרטי. כל מה שייבנה, כולל נתוני התלמידים, יישמר בחשבון הזה.</li>
+    <li><span class="ui">חדש</span> ← <span class="ui">Google Sheets</span> ← גיליון ריק.</li>
+    <li>נותנים לו שם, למשל: <b>מבדקי קריאה - מרכז</b>.</li>
+  </ol>
+  <div class="tip">בגיליון הזה לא נשמרים נתוני תלמידים. הוא "חדר הבקרה": רשימת הכיתות, המורות והצופים.</div>
+</section>
+
+<section class="step" id="s2">
+  <h2><span class="num">2</span>הדבקת הקוד</h2>
+  <ol>
+    <li>בגיליון: <span class="ui">תוספים</span> ← <span class="ui">Apps Script</span>. נפתחת לשונית חדשה עם עורך קוד.</li>
+    <li>בצד ימין יש קובץ בשם <b>קוד.gs</b>. לוחצים בתוך הקוד, <kbd>Ctrl</kbd>+<kbd>A</kbd>, ומוחקים הכול.</li>
+    <li>לוחצים על <span class="ui">העתקת הקוד</span> כאן למטה, חוזרים לעורך ומדביקים: <kbd>Ctrl</kbd>+<kbd>V</kbd>.</li>
+  </ol>
+  <div class="codebox">
+    <div class="codebar"><div><strong>קוד.gs</strong> <span>(החלק שמתקשר עם הגיליון)</span></div><button class="copy" type="button" id="copy-code" data-target="code-gs">העתקת הקוד</button></div>
+    <textarea class="code" id="code-gs" readonly aria-label="הקוד של קוד.gs">/**
+ * מבדקי קריאה בכיתה - צד השרת
+ * כל ההגדרות (מבדקים, שאלות, מדדים) נמצאות כאן למעלה.
+ */
+
+const TESTS = {
+  words: { name: 'רשימת מילים', words: true, qs: [] },
+  snails: { name: 'השבלול', qs: [
+    ['1',5,'הבנת המשמעות הגלויה'],['2',4,'הבנת מילים וביטויים בהקשר'],['3',5,'ידע לשוני: אזכורים'],['4',5,'הבנה משתמעת'],['5א',3,'הבנת המשמעות הגלויה'],['5ב',3,'הבנה משתמעת'],['6',5,'הבנה משתמעת'],['7',10,'הבנת המשמעות הגלויה'],['8א',5,'הבנת המשמעות הגלויה'],['8ב',4,'אוצר מילים: נרדפות'],['8ג',6,'הבנה משתמעת'],['9א',3,'הבנה משתמעת'],['9ב',3,'הבנה משתמעת'],['10א',6,'הבנת המשמעות הגלויה'],['10ב',6,'יישום, הערכה וביקורת'],['11',10,'הבנת המשמעות הגלויה'],['12',6,'הערכה ופרשנות'],['13',5,'הבנה משתמעת: אוצר מילים'],['14',6,'פרשנות והסקת מסקנות']] },
+  anteater: { name: 'דוב נמלים', qs: [
+    ['1',2,'איתור מידע'],['2',2,'פרשנות והיסק'],['3',2,'איתור מידע'],['4',2,'איתור מידע'],['5',4,'איתור מידע'],['6',2,'פרשנות והיסק'],['7',2,'פרשנות והיסק'],['8',2,'פרשנות והיסק'],['9',2,'פרשנות והיסק'],['10',2,'פרשנות והיסק'],['11',8,'פרשנות והיסק'],['12',2,'פרשנות והיסק'],['13',3,'פרשנות והיסק'],['14',2,'פרשנות והיסק'],['15',3,'פרשנות והיסק'],['16',4,'בקרה ויישום, חשיבה יצירתית'],['17',6,'הערכה וביקורת']] },
+  survival: { name: 'הישרדות', qs: [
+    ['1',4,'איתור מידע'],['2',4,'פרשנות והיסק'],['3',4,'איתור מידע'],['4',4,'פרשנות והיסק'],['5',4,'פרשנות והיסק'],['6',4,'פרשנות והיסק'],['7',4,'פרשנות והיסק'],['8',4,'פרשנות והיסק'],['9',4,'איתור מידע'],['10',6,'פרשנות והיסק'],['11א',4,'פרשנות והיסק'],['11ב',4,'פרשנות והיסק'],['12',4,'פרשנות והיסק'],['13',6,'הערכה וביקורת'],['14',4,'פרשנות והיסק'],['15',4,'הערכה וביקורת'],['16',4,'פרשנות והיסק'],['17',4,'מבנה המשפט'],['18',6,'אוצר מילים'],['19',8,'מבנה המילה'],['20',6,'מבנה המילה'],['21',4,'אוצר מילים']],
+    extra: { label: 'כתיבה: הערכה איכותנית (רמה)', opts: ['1','2','3','4','5'] } }
+};
+
+/** טקסטים לשטף קריאה: שם ומספר מילים */
+const FLUENCY_TEXTS = [
+  { name: 'אגדת הירדן', words: 264, nikud: 'אינו מנוקד' },
+  { name: 'הנחשים והקיפוד', words: 145, nikud: 'מנוקד' }
+];
+
+const FLUENCY = [
+  ['nikud','ניקוד','מנוקד|אינו מנוקד'],
+  ['mode','אופן הקריאה','גלובלית ברובה|מקוטעת ברובה'],
+  ['pace','הערכה התרשמותית מקצב הקריאה','נמוך|בינוני|גבוה'],
+  ['prosody','פרוזודיה','נמוכה|בינונית|גבוהה'],
+  ['comp','מידת ההבנה','גבוהה|בינונית|נמוכה']
+];
+
+const SS = 'חוזק|לחיזוק', YN = 'כן|לא';
+const MORE = [
+  { title: 'השתתפות בשיח האורייני', items: [{ key:'siach', label:'השתתפות בשיח האורייני', stack:true, opts:'משתתף בשיח האורייני ומפיק שיח מורחב|משתתף בשיח האורייני|משתתף בשיח האורייני ומצליח להביע את עצמו בשיח הדבור|ממעט לקחת חלק בשיח האורייני' }] },
+  { title: 'שפה והבעה', items: [{ key:'safa', label:'שפה והבעה', stack:true, opts:'מתבטא בצורה תקינה ועם אוצר מילים רחב|שולט בשפה ומשתמש בה בביטחון למגוון מטרות חברתיות ותקשורתיות|מגלה חולשה שפתית בהבנה ובהבעה' }] },
+  { title: 'מאפיינים נוספים', items: [
+    { key:'m1', label:'מבין טקסטים המוקראים לו', opts:YN },
+    { key:'m2', label:'נהנה לקרוא ולכתוב', opts:YN },
+    { key:'m3', label:'מגלה ביטחון אורייני', opts:YN },
+    { key:'m4', label:'משתמש בכישורים האורייניים באופן עצמאי לצורכי למידה', opts:YN },
+    { key:'m5', label:'מגלה חוסר באוצר מילים ובידע לשוני', opts:YN }] },
+  { title: 'רגש וקריאה', items: [
+    { key:'r1', label:'חוויה רגשית', opts:SS, desc:'מנעד הרגשות שחווים התלמידים סביב ההתנסויות בקריאה. באיזו מידה הם חווים רגשות של הנאה, עונג ועניין במהלך ביצוע מטלות קריאה, ובאיזו מידה הם חווים רגשות של תסכול, שעמום וחוסר אונים.' },
+    { key:'r2', label:'תפיסות ועמדות', opts:SS, desc:'מהן העמדות והתפיסות שהתגבשו אצל התלמיד בנוגע לקריאה בכלל ובנוגע לעצמו כקורא. תפיסות ועמדות משקפות הערכה עצמית, תחושת מסוגלות והכרה בערך ובחשיבות של הקריאה.' },
+    { key:'r3', label:'היבט התנהגותי', opts:SS, desc:'מגוון התנהגויות המושקעות בקידום הקריאה. חלק זה נוגע להיבטים מוטיבציוניים והנעה לקריאה. מוטיבציה משתקפת לא רק בכוונות ובגישה, אלא גם בהשקעת זמן בקריאה. השקעת זמן בתרגול ובאימון קריאה ובקריאה להנאה משקפים לא רק מוטיבציה, אלא גם מחויבות.' }] },
+  { title: 'אסטרטגיות קריאה', skipWords: true, items: [
+    { key:'a1', label:'קריאה מנוטרת הבנה', opts:SS, desc:'הפניית קשב לתוכן והפעלת בקרה במהלך הקריאה, ועל הלמידה בעקבותיה.' },
+    { key:'a2', label:'ויסות וניהול אופן הקריאה', opts:SS, desc:'ביטחון בקריאה וניהול יעיל שלה: קריאה חוזרת של משפטים שלא הובנו, וחזרה לטקסט לחיפוש מידע. אסטרטגיה של חזרה לטקסט יעילה מאוד ויש לעודד אותה.' },
+    { key:'a3', label:'הפעלת אסטרטגיות לפתרון בעיות', opts:SS, desc:'דרכי ההתמודדות עם מילים ומשפטים שאינם מובנים. קריאה יעילה ואסטרטגית באה לידי ביטוי בתהליכי קריאה המנוהלים באופן גמיש ומושכל ובאופן שבו הקורא מתמודד עם אתגרי הקריאה.' }] },
+  { title: 'כיול: ההערכה העצמית מול ההישגים', items: [{ key:'kiyul', label:'כיול', opts:'מתאם גבוה|מתאם נמוך' }] }
+];
+
+/** זיהוי, שיום והגייה: לכל פריט שלושה סימונים */
+const LETTERS = {
+  title: 'זיהוי, שיום והגייה',
+  aspects: ['זיהוי', 'שיום', 'הגייה'],
+  groups: [
+    { key: 'ot', title: 'אותיות', hint: 'כולל דגושות, רפות וסופיות',
+      items: ['א','בּ','ב','ג','ד','ה','ו','ז','ח','ט','י','כּ','כ','ך','ל','מ','ם','נ','ן','ס','ע','פּ','פ','ף','צ','ץ','ק','ר','שׁ','שׂ','ת'] },
+    { key: 'tnua', title: 'תנועות וכתיב מלא וחסר',
+      items: ['קָמץ','פַתח','צֵירה','צֵירה מלא (ֵי)','סֶגול','חִיריק חסר','חִיריק מלא (ִי)','חוֹלם חסר','חוֹלם מלא (וֹ)','שוּרוק (וּ)','קֻבוץ','שְווא'] }
+  ]
+};
+
+/** קריאת מילים בודדות ב-45 שניות (מתוך דף התיעוד, לפי סדר העמודות מימין לשמאל) */
+const WORDS = {
+  title: 'קריאת מילים בודדות ב-45 שניות',
+  seconds: 45,
+  columns: [
+    ['אִם','עַל','פִיל','בֵּן','לוֹ','בּוֹ','כִי','תָא','פֶּה','מָה','שָׁרַתְ','שֵׁן','רַק','רִיב','אֵיךְ','חוּט','חוֹל','טַנְק','כְלִי','מַיִם'],
+    ['רוּחַ','הוּא','דַי','לַיְלָה','נְיָר','בְּכוֹר','שַׂמְתְ','גְבוּל','צְנוֹן','צְלִיל','מֹחַ','פָרַס','דַף','חוּץ','שַׁי','חַיְגָן','אֹרֶן','צִיר','בִּצָה','יָדַיִם'],
+    ['בָּאתִי','עִוֵר','נַמֵק','שִׁתֵף','מִבְדָק','תִקְרָה','הֻלְבַּשׁ','עִנְיָן','סְפָרָיו','מִצְפֶּה','צֹאנִי','קֶשֶׁר','עַל יַד','נָשׂוּי','יְמָמָה','חַיְזָר','בֵּיצָה','גָלוּי','גְשָׁרִים','עַל פִי'],
+    ['רַמַאי','גְבָעוֹת','מַלְכוּת','פִרְסוּם','טִפְטֵף','קוֹלְפָן','תַצְפִית','מַפְרִיעִים','פִתּוּחַ','מִדְרוֹן','יִלְבְּשׁוּ','מַטְעֵן','גַלְגַל','הִשְׁוָה','קוֹרֵעַ','שׁוֹבָב','קִשּׁוּטִים','מְיֻחָד','פִקְפְקוּ','מְסֻבָּךְ']
+  ]
+};
+
+const SETTINGS_SHEET = 'הגדרות';
+const ROOT_FOLDER_NAME = 'מבדקי קריאה';
+const DEFAULT_CLASSES = ['ז1','ז2','ח1','ט1','ט2','י1','י2','י3','יא1','יא2','יב1'];
+// עמודות בלשונית ההגדרות
+const COL_CLASS = 1, COL_FOLDER = 2, COL_SHEET = 3, COL_ID = 4, COL_VIEWERS = 6, COL_TEACHERS = 8;
+
+/* ---------- פתיחת האפליקציה ---------- */
+
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('Index')
+    .setTitle('מבדקי קריאה בכיתה')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+/** תפריט בגיליון המרכזי */
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu('מבדקי קריאה')
+    .addItem('1. הכנת לשונית ההגדרות', 'setup')
+    .addItem('2. יצירת תיקיות וגיליונות לכיתות', 'createClassFolders')
+    .addItem('3. עדכון שיתוף עם הצופים', 'shareWithViewers')
+    .addSeparator()
+    .addItem('איפוס לשוניות המבדקים (רק כשאין נתונים)', 'resetTestSheets')
+    .addToUi();
+}
+
+/** יוצר את לשונית ההגדרות עם רשימת הכיתות ומקום למיילים של הצופים */
+function setup() {
+  const ss = SpreadsheetApp.getActive();
+  let st = ss.getSheetByName(SETTINGS_SHEET);
+  if (!st) {
+    st = ss.insertSheet(SETTINGS_SHEET, 0);
+    st.setRightToLeft(true);
+    st.getRange(1, 1, 1, 4).setValues([['כיתה', 'תיקייה', 'גיליון', 'מזהה (לא לגעת)']]).setFontWeight('bold').setBackground('#DCEFEA');
+    st.getRange(2, COL_CLASS, DEFAULT_CLASSES.length, 1).setValues(DEFAULT_CLASSES.map(c =&gt; [c]));
+    st.getRange(1, COL_VIEWERS).setValue('צופים: מייל אחד בכל שורה').setFontWeight('bold').setBackground('#FFF3D6');
+    st.setColumnWidth(COL_CLASS, 70);
+    st.setColumnWidths(COL_FOLDER, 2, 220);
+    st.setColumnWidth(COL_VIEWERS, 260);
+    st.hideColumns(COL_ID);
+    st.setFrozenRows(1);
+  }
+  if (!st.getRange(1, COL_TEACHERS).getValue()) {
+    st.getRange(1, COL_TEACHERS).setValue('מורות מורשות: מייל אחד בכל שורה').setFontWeight('bold').setBackground('#FCE9C8');
+    st.setColumnWidth(COL_TEACHERS, 260);
+  }
+  return st;
+}
+
+/** יוצר תיקייה ראשית, ובתוכה תיקייה וגיליון לכל כיתה שעוד אין לה. אפשר להריץ שוב אחרי הוספת כיתה. */
+function createClassFolders() {
+  const st = setup();
+  const props = PropertiesService.getScriptProperties();
+  let root = null;
+  const rootId = props.getProperty('ROOT_FOLDER_ID');
+  if (rootId) {
+    try { root = DriveApp.getFolderById(rootId); } catch (err) { root = null; }
+  }
+  if (!root) {
+    root = DriveApp.createFolder(ROOT_FOLDER_NAME);
+    props.setProperty('ROOT_FOLDER_ID', root.getId());
+  }
+  const last = st.getLastRow();
+  let created = 0;
+  for (let r = 2; r &lt;= last; r++) {
+    const cls = String(st.getRange(r, COL_CLASS).getValue()).trim();
+    if (!cls || st.getRange(r, COL_ID).getValue()) continue;
+    const folder = root.createFolder(cls);
+    const ss = SpreadsheetApp.create('מבדקי קריאה - ' + cls);
+    DriveApp.getFileById(ss.getId()).moveTo(folder);
+    const blank = ss.getSheets()[0];
+    Object.keys(TESTS).forEach(k =&gt; sheetFor_(ss, k));
+    ss.deleteSheet(blank);
+    st.getRange(r, COL_FOLDER).setFormula('=HYPERLINK("' + folder.getUrl() + '","תיקיית ' + cls + '")');
+    st.getRange(r, COL_SHEET).setFormula('=HYPERLINK("' + ss.getUrl() + '","גיליון ' + cls + '")');
+    st.getRange(r, COL_ID).setValue(ss.getId());
+    SpreadsheetApp.flush();
+    created++;
+  }
+  shareWithViewers();
+  SpreadsheetApp.getActive().toast('נוצרו ' + created + ' כיתות חדשות, בתיקייה "' + ROOT_FOLDER_NAME + '"', 'מבדקי קריאה', 8);
+}
+
+/** משתף את התיקייה הראשית (וכל מה שבתוכה) בצפייה בלבד עם המיילים שבלשונית ההגדרות */
+function shareWithViewers() {
+  const st = setup();
+  const id = PropertiesService.getScriptProperties().getProperty('ROOT_FOLDER_ID');
+  if (!id) return;
+  const root = DriveApp.getFolderById(id);
+  const current = root.getViewers().map(u =&gt; u.getEmail().toLowerCase());
+  const last = Math.max(st.getLastRow(), 2);
+  st.getRange(2, COL_VIEWERS, last - 1, 1).getValues()
+    .map(r =&gt; String(r[0]).trim().toLowerCase())
+    .filter(m =&gt; m &amp;&amp; m.indexOf('@') &gt; 0 &amp;&amp; current.indexOf(m) &lt; 0)
+    .forEach(m =&gt; root.addViewer(m));
+}
+
+/**
+ * מוחק את לשוניות המבדקים בכל גיליונות הכיתות, כדי שייווצרו מחדש עם העמודות העדכניות.
+ * לשונית שיש בה הזנות לא נמחקת, ומדווחת בסוף.
+ */
+function resetTestSheets() {
+  const ui = SpreadsheetApp.getUi();
+  const rows = classRows_().filter(c =&gt; c.id);
+  if (!rows.length) {
+    ui.alert('לא נמצאו גיליונות כיתה. צריך להריץ קודם "יצירת תיקיות וגיליונות לכיתות".');
+    return;
+  }
+  const answer = ui.alert('איפוס לשוניות המבדקים',
+    'הפעולה מוחקת את לשוניות המבדקים ב-' + rows.length + ' גיליונות הכיתות, כדי שייווצרו מחדש עם העמודות העדכניות.\n\n' +
+    'לשונית שיש בה הזנות לא תימחק. להמשיך?', ui.ButtonSet.YES_NO);
+  if (answer !== ui.Button.YES) return;
+
+  const names = Object.keys(TESTS).map(k =&gt; TESTS[k].name);
+  let deleted = 0; const kept = [];
+  rows.forEach(row =&gt; {
+    const ss = SpreadsheetApp.openById(row.id);
+    names.forEach(name =&gt; {
+      const sh = ss.getSheetByName(name);
+      if (!sh) return;
+      if (sh.getLastRow() &gt; 1) { kept.push(row.cls + ' - ' + name + ' (' + (sh.getLastRow() - 1) + ' הזנות)'); return; }
+      // גוגל דורש לפחות לשונית אחת בקובץ
+      if (ss.getSheets().length === 1) ss.insertSheet('זמני');
+      ss.deleteSheet(sh);
+      deleted++;
+    });
+    SpreadsheetApp.flush();
+  });
+
+  let msg = 'נמחקו ' + deleted + ' לשוניות. הן ייווצרו מחדש בהזנה הראשונה.';
+  if (kept.length) msg += '\n\nלא נמחקו, כי יש בהן הזנות:\n' + kept.join('\n');
+  ui.alert('איפוס לשוניות המבדקים', msg, ui.ButtonSet.OK);
+}
+
+/* ---------- הרשאות ובדיקת קלט ---------- */
+
+/** מי רשאי להשתמש באפליקציה: בעלת הסקריפט, ומי שמופיעה ברשימת המורות המורשות */
+function isAllowed_(email) {
+  if (!email) return false;
+  const me = String(email).trim().toLowerCase();
+  const owner = String(Session.getEffectiveUser().getEmail() || '').toLowerCase();
+  if (me === owner) return true;
+  const st = SpreadsheetApp.getActive().getSheetByName(SETTINGS_SHEET);
+  if (!st || st.getLastRow() &lt; 2) return false;
+  return st.getRange(2, COL_TEACHERS, st.getLastRow() - 1, 1).getValues()
+    .some(r =&gt; String(r[0]).trim().toLowerCase() === me);
+}
+
+function requireAllowed_() {
+  const email = userEmail_();
+  if (!email) throw new Error('לא זוהה משתמש. יש להתחבר עם החשבון הארגוני.');
+  if (!isAllowed_(email)) throw new Error('אין לך הרשאה להשתמש באפליקציה. אפשר לפנות לרכזת.');
+  return email;
+}
+
+/** טקסט חופשי: קצר, בלי תווי בקרה, ובלי תו שגוגל שיטס יפרש כנוסחה */
+function cleanText_(v, max) {
+  let t = String(v == null ? '' : v).replace(/[\u0000-\u001F\u007F&lt;&gt;]/g, ' ').trim().slice(0, max || 60);
+  while (/^[=+\-@\t]/.test(t)) t = t.slice(1).trim();
+  return t;
+}
+
+function cleanInt_(v, min, max) {
+  if (v === '' || v == null) return '';
+  const n = Number(v);
+  if (!isFinite(n) || Math.floor(n) !== n || n &lt; min || n &gt; max) return '';
+  return n;
+}
+
+function oneOf_(v, optsString) {
+  return optsString.split('|').indexOf(v) &gt;= 0 ? v : '';
+}
+
+/** בונה הזנה נקייה רק מהשדות והערכים המותרים */
+function sanitizeEntry_(raw) {
+  const e = raw || {};
+  const test = TESTS[e.test];
+  if (!test) throw new Error('מבדק לא מוכר');
+  const classes = classRows_().filter(c =&gt; c.id).map(c =&gt; c.cls);
+  if (classes.indexOf(String(e.cls)) &lt; 0) throw new Error('כיתה לא מוכרת');
+  const sid = cleanInt_(e.sid, 1, 99999);
+  if (sid === '') throw new Error('מספר תלמיד לא תקין');
+  const id = e.id &amp;&amp; /^[A-Za-z0-9-]{8,64}$/.test(String(e.id)) ? String(e.id) : null;
+  if (e.id &amp;&amp; !id) throw new Error('מזהה הזנה לא תקין');
+  const origCls = id &amp;&amp; classes.indexOf(String(e.origCls)) &gt;= 0 ? String(e.origCls) : String(e.cls);
+
+  const out = {
+    id: id, origCls: origCls, test: e.test, cls: String(e.cls), sid: sid,
+    date: /^\d{4}-\d{2}-\d{2}$/.test(String(e.date || '')) ? String(e.date) : '',
+    txt: cleanText_(e.txt, 60),
+    words: cleanInt_(e.words, 1, 5000),
+    errors: cleanInt_(e.errors, 0, 1000),
+    secs: cleanInt_(e.secs, 1, 3600),
+    choice: {}, scores: {}, extra: null
+  };
+
+  const ch = e.choice || {};
+  FLUENCY.forEach(f =&gt; { const v = oneOf_(ch[f[0]], f[2]); if (v) out.choice[f[0]] = v; });
+  moreItems_().forEach(it =&gt; { const v = oneOf_(ch[it.key], it.opts); if (v) out.choice[it.key] = v; });
+
+  const cleanScores = (t, src) =&gt; {
+    const res = {};
+    t.qs.forEach(q =&gt; { const v = cleanInt_((src || {})[q[0]], 0, q[1]); if (v !== '') res[q[0]] = v; });
+    return res;
+  };
+  out.scores = cleanScores(test, e.scores);
+  if (test.extra &amp;&amp; test.extra.opts.indexOf(String(e.extra)) &gt;= 0) out.extra = String(e.extra);
+
+  const total = WORDS.columns.reduce((a, c) =&gt; a + c.length, 0);
+  const idxList = arr =&gt; (Array.isArray(arr) ? arr : []).map(x =&gt; cleanInt_(x, 1, total)).filter(x =&gt; x !== '')
+    .filter((x, i, a) =&gt; a.indexOf(x) === i);
+  const wl = e.wordsList || {};
+  out.wordsList = { last: cleanInt_(wl.last, 1, total) || null, errs: idxList(wl.errs), sc: idxList(wl.sc) };
+
+  out.letters = {};
+  const lt = e.letters || {};
+  LETTERS.groups.forEach(g =&gt; {
+    out.letters[g.key] = {};
+    g.items.forEach(item =&gt; {
+      const marks = (lt[g.key] || {})[item] || {};
+      const clean = {};
+      LETTERS.aspects.forEach(a =&gt; { if (marks[a] === 'ok') clean[a] = 'ok'; });
+      out.letters[g.key][item] = clean;
+    });
+  });
+
+  const hd = e.heard || {};
+  const hTest = TESTS[hd.test];
+  out.heard = hTest &amp;&amp; !hTest.words ? { test: hd.test, scores: cleanScores(hTest, hd.scores) } : { test: null, scores: {} };
+  return out;
+}
+
+/* ---------- נתונים לאפליקציה ---------- */
+
+function getInit() {
+  const email = userEmail_();
+  if (!isAllowed_(email)) return { denied: true, email: email };
+  const classes = classRows_().filter(c =&gt; c.id).map(c =&gt; c.cls);
+  return { email: userEmail_(), classes: classes, tests: TESTS, fluency: FLUENCY, texts: FLUENCY_TEXTS, more: MORE, words: WORDS, letters: LETTERS };
+}
+
+function saveEntry(raw) {
+  const email = requireAllowed_();
+  const e = sanitizeEntry_(raw);
+  const test = TESTS[e.test];
+  if (!e.cls || !e.sid) throw new Error('חסרים כיתה או מספר תלמיד');
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sh = sheetFor_(classSs_(e.cls), e.test);
+    const row = buildRow_(e, test, email);
+    if (e.id) {
+      // אם הכיתה שונתה בזמן עריכה, השורה עוברת לגיליון של הכיתה החדשה
+      const fromCls = e.origCls || e.cls;
+      const oldSh = fromCls === e.cls ? sh : sheetFor_(classSs_(fromCls), e.test);
+      const r = findRow_(oldSh, e.id);
+      if (!r) throw new Error('ההזנה לא נמצאה');
+      if (oldSh.getRange(r, 3).getValue() !== email) throw new Error('אפשר לערוך רק הזנות שלך');
+      if (fromCls === e.cls) {
+        sh.getRange(r, 1, 1, row.length).setValues([row]);
+      } else {
+        oldSh.deleteRow(r);
+        sh.appendRow(row);
+      }
+    } else {
+      sh.appendRow(row);
+    }
+    return { id: row[0] };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** ההזנות של המורה המחוברת, בכיתה אחת */
+function listMine(cls) {
+  const email = requireAllowed_();
+  const ss = classSs_(cls);
+  const out = [];
+  Object.keys(TESTS).forEach(k =&gt; {
+    const test = TESTS[k];
+    const sh = ss.getSheetByName(test.name);
+    if (!sh || sh.getLastRow() &lt; 2) return;
+    const h = headers_(test);
+    sh.getRange(2, 1, sh.getLastRow() - 1, h.length).getValues().forEach(r =&gt; {
+      if (r[2] !== email) return;
+      const item = { id: r[0], test: k, testName: test.name, date: fmtDate_(r[3]), cls: cls, sid: r[5] };
+      if (test.words) {
+        const base = 6 + LETTERS.groups.length * LETTERS.aspects.length * 3 + 2 + moreItems_(test).length;
+        item.acc = ''; item.wpm = '';
+        item.score = r[base + 1] + ' מילים נכונות מתוך ' + r[base];
+      } else {
+        item.acc = r[10]; item.wpm = r[12];
+        item.score = r[h.indexOf('סה"כ בשאלות')] + '/' + r[h.indexOf('ניקוד מרבי')];
+      }
+      out.push(item);
+    });
+  });
+  return out.sort((a, b) =&gt; (a.date &lt; b.date ? 1 : -1));
+}
+
+function getEntry(cls, testKey, id) {
+  requireAllowed_();
+  const test = TESTS[testKey];
+  if (!test) throw new Error('מבדק לא מוכר');
+  const sh = classSs_(cls).getSheetByName(test.name);
+  const r = findRow_(sh, id);
+  if (!r) throw new Error('ההזנה לא נמצאה');
+  const h = headers_(test);
+  const v = sh.getRange(r, 1, 1, h.length).getValues()[0];
+  if (v[2] !== userEmail_()) throw new Error('אפשר לפתוח רק הזנות שלך');
+  const e = { id: v[0], origCls: cls, test: testKey, date: fmtDate_(v[3]), cls: cls, sid: v[5], choice: {}, scores: {}, extra: null };
+  const nums = x =&gt; String(x || '').split(',').filter(String).map(Number);
+  let c = 6;
+  if (test.words) {
+    e.letters = {};
+    LETTERS.groups.forEach(g =&gt; {
+      e.letters[g.key] = {};
+      g.items.forEach(it =&gt; { e.letters[g.key][it] = {}; });
+      LETTERS.aspects.forEach(a =&gt; {
+        const bad = String(v[c + 2] || '').split(' ').filter(String);
+        g.items.forEach(it =&gt; { if (bad.indexOf(it) &lt; 0) e.letters[g.key][it][a] = 'ok'; });
+        c += 3;
+      });
+    });
+    e.choice.mode = v[c]; e.choice.pace = v[c + 1]; c += 2;
+    moreItems_(test).forEach(it =&gt; { if (v[c] !== '') e.choice[it.key] = v[c]; c++; });
+    e.wordsList = { last: v[c + 4] === '' ? null : Number(v[c + 4]), errs: nums(v[c + 5]), sc: nums(v[c + 8]) };
+    const hName = v[c + 9];
+    e.heard = { test: null, scores: {} };
+    Object.keys(TESTS).forEach(k =&gt; { if (TESTS[k].name === hName) e.heard.test = k; });
+    String(v[c + 12] || '').split(' ').filter(String).forEach(pair =&gt; {
+      const p = pair.split(':');
+      e.heard.scores[p[0]] = Number(p[1]);
+    });
+    return e;
+  }
+  e.txt = v[6]; e.words = v[8]; e.errors = v[9]; e.secs = v[11];
+  e.choice.nikud = v[7]; e.choice.mode = v[13]; e.choice.pace = v[14]; e.choice.prosody = v[15]; e.choice.comp = v[16];
+  c = MORE_START;
+  moreItems_().forEach(it =&gt; { if (v[c] !== '') e.choice[it.key] = v[c]; c++; });
+  test.qs.forEach(q =&gt; { if (v[c] !== '') e.scores[q[0]] = Number(v[c]); c++; });
+  if (test.extra) { e.extra = v[c] === '' ? null : String(v[c]); c++; }
+  return e;
+}
+
+/* ---------- עזר ---------- */
+
+function headers_(test) {
+  const base = ['מזהה','עודכן','מורה (מייל)','תאריך המבדק','כיתה','מספר תלמיד'];
+  if (test.words) {
+    const h = base.slice();
+    LETTERS.groups.forEach(g =&gt; LETTERS.aspects.forEach(a =&gt; {
+      h.push(g.title + ' - ' + a + ': ידע', g.title + ' - ' + a + ': לא ידע', g.title + ' - ' + a + ': הפריטים שלא ידע');
+    }));
+    h.push('אופן הקריאה', 'הערכה התרשמותית מקצב');
+    moreItems_(test).forEach(it =&gt; h.push(it.label));
+    return h.concat(['נקראו בסך הכול (כולל שגיאות)', 'נקראו נכונה ב-' + WORDS.seconds + ' שניות', 'שגיאות', 'המילים השגויות', 'המילה האחרונה (מספר)', 'שגויות (מספרים)', 'תיקונים עצמיים', 'המילים שתוקנו', 'תוקנו (מספרים)', 'הבנת הנשמע: המבדק', 'הבנת הנשמע: סה"כ', 'הבנת הנשמע: מתוך', 'הבנת הנשמע: פירוט']);
+  }
+  const h = base.concat(['שם הטקסט','סוג הטקסט','מספר המילים','מספר השגיאות','דיוק','זמן קריאה (שניות)','מילים בדקה',
+    'אופן הקריאה','הערכה התרשמותית מקצב','פרוזודיה','מידת ההבנה (שאלת ניטור)']);
+  moreItems_().forEach(it =&gt; h.push(it.label));
+  test.qs.forEach(q =&gt; h.push('שאלה ' + q[0] + ' (מתוך ' + q[1] + ')'));
+  if (test.extra) h.push(test.extra.label);
+  return h.concat(['סה"כ בשאלות', 'ניקוד מרבי']);
+}
+
+const FLU_COLS = 17, MORE_START = 17;
+
+function moreItems_(test) {
+  return MORE.filter(s =&gt; !(test &amp;&amp; test.words &amp;&amp; s.skipWords)).reduce((a, s) =&gt; a.concat(s.items), []);
+}
+
+function lettersCols_(e) {
+  const marks = e.letters || {};
+  const out = [];
+  LETTERS.groups.forEach(g =&gt; {
+    const byItem = marks[g.key] || {};
+    LETTERS.aspects.forEach(a =&gt; {
+      let ok = 0; const bad = [];
+      g.items.forEach(it =&gt; {
+        if ((byItem[it] || {})[a] === 'ok') ok++; else bad.push(it);
+      });
+      out.push(ok, bad.length, bad.join(' '));
+    });
+  });
+  return out;
+}
+
+function buildRow_(e, test, email) {
+  const ch = e.choice || {};
+  const known = FLUENCY_TEXTS.filter(t =&gt; t.name === e.txt)[0];
+  const words = known ? known.words : (e.words === '' || e.words == null ? '' : Number(e.words));
+  const nikud = ch.nikud || (known ? known.nikud : '');
+  const errors = e.errors === '' || e.errors == null ? '' : Number(e.errors);
+  const acc = errors === '' ? '' : errors &lt;= 4 ? 'בינוני-גבוה' : errors &lt;= 9 ? 'בינוני-נמוך' : 'נמוך';
+  const secs = e.secs === '' || e.secs == null ? '' : Number(e.secs);
+  const wpm = words &amp;&amp; secs ? Math.round(words / secs * 60) : '';
+
+  const head = [e.id || Utilities.getUuid(), new Date(), email, e.date ? new Date(e.date) : '', e.cls, Number(e.sid)];
+
+  if (test.words) {
+    const row = head.concat(lettersCols_(e), [ch.mode || '', ch.pace || '']);
+    moreItems_(test).forEach(it =&gt; row.push(ch[it.key] || ''));
+    const flat = WORDS.columns.reduce((a, col) =&gt; a.concat(col), []);
+    const wl = e.wordsList || {};
+    const last = wl.last ? Math.min(Number(wl.last), flat.length) : 0;
+    if (!last) throw new Error('יש לסמן את המילה האחרונה שנקראה');
+    const errs = (wl.errs || []).map(Number).filter(i =&gt; i &gt;= 1 &amp;&amp; i &lt;= last).sort((a, b) =&gt; a - b);
+    const sc = (wl.sc || []).map(Number).filter(i =&gt; i &gt;= 1 &amp;&amp; i &lt;= last &amp;&amp; errs.indexOf(i) &lt; 0).sort((a, b) =&gt; a - b);
+    const hd = e.heard || {};
+    const hTest = TESTS[hd.test];
+    let hTot = 0, hMax = 0; const detail = [];
+    if (hTest) {
+      hTest.qs.forEach(q =&gt; {
+        const v = hd.scores &amp;&amp; hd.scores[q[0]];
+        hMax += q[1];
+        if (v !== undefined &amp;&amp; v !== null &amp;&amp; v !== '') { hTot += Number(v); detail.push(q[0] + ':' + v); }
+      });
+    }
+    return row.concat([last, last - errs.length, errs.length, errs.map(i =&gt; flat[i - 1]).join(', '), last, errs.join(','), sc.length, sc.map(i =&gt; flat[i - 1]).join(', '), sc.join(','),
+      hTest ? hTest.name : '', hTest ? hTot : '', hTest ? hMax : '', detail.join(' ')]);
+  }
+
+  const row = head.concat([e.txt || '', nikud, words, errors, acc, secs, wpm,
+    ch.mode || '', ch.pace || '', ch.prosody || '', ch.comp || '']);
+  moreItems_().forEach(it =&gt; row.push(ch[it.key] || ''));
+
+  let total = 0, max = 0;
+  test.qs.forEach(q =&gt; {
+    const v = e.scores &amp;&amp; e.scores[q[0]];
+    const ok = v !== undefined &amp;&amp; v !== null &amp;&amp; v !== '';
+    row.push(ok ? Number(v) : '');
+    if (ok) total += Number(v);
+    max += q[1];
+  });
+  if (test.extra) row.push(e.extra || '');
+  return row.concat([total, max]);
+}
+
+function sheetFor_(ss, key) {
+  const test = TESTS[key];
+  let sh = ss.getSheetByName(test.name);
+  if (!sh) {
+    const h = headers_(test);
+    sh = ss.insertSheet(test.name);
+    sh.setRightToLeft(true);
+    sh.getRange(1, 1, 1, h.length).setValues([h]).setFontWeight('bold').setWrap(true).setBackground('#DCEFEA');
+    sh.setFrozenRows(1);
+    sh.setFrozenColumns(6);
+    sh.hideColumns(1, 2);
+  }
+  return sh;
+}
+
+function classRows_() {
+  const st = SpreadsheetApp.getActive().getSheetByName(SETTINGS_SHEET);
+  if (!st || st.getLastRow() &lt; 2) return [];
+  return st.getRange(2, 1, st.getLastRow() - 1, COL_ID).getValues()
+    .map(r =&gt; ({ cls: String(r[COL_CLASS - 1]).trim(), id: String(r[COL_ID - 1]).trim() }))
+    .filter(c =&gt; c.cls);
+}
+
+function classSs_(cls) {
+  const row = classRows_().find(c =&gt; c.cls === String(cls));
+  if (!row || !row.id) throw new Error('לכיתה ' + cls + ' עוד אין גיליון. צריך להריץ "יצירת תיקיות וגיליונות לכיתות".');
+  return SpreadsheetApp.openById(row.id);
+}
+
+function findRow_(sh, id) {
+  if (!sh || sh.getLastRow() &lt; 2) return 0;
+  const ids = sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues();
+  for (let i = 0; i &lt; ids.length; i++) if (ids[i][0] === id) return i + 2;
+  return 0;
+}
+
+function userEmail_() {
+  return Session.getActiveUser().getEmail();
+}
+
+function fmtDate_(d) {
+  if (!(d instanceof Date)) return String(d || '');
+  return Utilities.formatDate(d, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+}
+</textarea>
+  </div>
+  <ol start="4">
+    <li>ליד "קבצים" לוחצים <span class="ui">+</span> ← <span class="ui">HTML</span>, וקוראים לקובץ <b>Index</b>. בדיוק כך: I גדולה, בלי ".html".</li>
+  </ol>
+  <figure><img src="img-index-file.jpg" alt="עורך Apps Script: מתחת לקובץ קוד.gs נפתחה שורה לשם הקובץ החדש" loading="lazy"><figcaption>אחרי הלחיצה על + ← HTML נפתחת שורה לשם הקובץ. כותבים בה Index ולוחצים Enter.</figcaption></figure>
+  <ol start="5">
+    <li>מוחקים את מה שבתוך הקובץ החדש, לוחצים על <span class="ui">העתקת המסך</span> ומדביקים.</li>
+  </ol>
+  <div class="codebox">
+    <div class="codebar"><div><strong>Index.html</strong> <span>(המסך שהמורה רואה)</span></div><button class="copy" type="button" id="copy-index" data-target="index-html">העתקת המסך</button></div>
+    <textarea class="code" id="index-html" readonly aria-label="הקוד של Index.html">&lt;!doctype html&gt;
+&lt;html lang="he" dir="rtl"&gt;
+&lt;head&gt;
+&lt;meta charset="utf-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+&lt;base target="_top"&gt;
+&lt;title&gt;מבדקי קריאה בכיתה&lt;/title&gt;
+&lt;link rel="preconnect" href="https://fonts.googleapis.com"&gt;
+&lt;link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&amp;family=Secular+One&amp;display=swap"&gt;
+&lt;style&gt;
+:root{
+  --ground:#EEF2F0; --surface:#FFFFFF; --ink:#1C2A3A; --muted:#5B6B78; --line:#D5DEDA;
+  --accent:#0E7466; --accent-soft:#DCEFEA; --calc:#FFF3D6; --calc-ink:#7A4B00;
+  --good:#1D7A3E; --mid:#A86A00; --low:#B3372B; --sample:#FCE9C8;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#121A20; --surface:#1B252D; --ink:#E6EDF0; --muted:#98A8B3; --line:#2E3C46;
+    --accent:#3CC1AA; --accent-soft:#17362F; --calc:#3A2F17; --calc-ink:#F5CF7A;
+    --good:#5BCB82; --mid:#E2AA42; --low:#F07C6F; --sample:#3A2E18;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#121A20; --surface:#1B252D; --ink:#E6EDF0; --muted:#98A8B3; --line:#2E3C46;
+  --accent:#3CC1AA; --accent-soft:#17362F; --calc:#3A2F17; --calc-ink:#F5CF7A;
+  --good:#5BCB82; --mid:#E2AA42; --low:#F07C6F; --sample:#3A2E18;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--ground);color:var(--ink);font:16px/1.5 "Assistant",Arial,sans-serif;direction:rtl;padding-inline:16px;padding-block:0 110px}
+.wrap{max-width:760px;margin:0 auto}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;padding-block:18px 10px}
+h1{font:400 1.6rem/1.2 "Secular One","Assistant",sans-serif;margin:0}
+.who{font-size:.85rem;color:var(--muted)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-block:6px 14px}
+.tab{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 16px;border-radius:999px;font:600 .95rem "Assistant",sans-serif;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.note{background:var(--sample);border-radius:10px;padding:8px 12px;font-size:.9rem;margin-bottom:12px}
+section.block{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+h2{font:400 1.15rem "Secular One","Assistant",sans-serif;margin:0 0 12px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+h2 small{font:400 .85rem "Assistant",sans-serif;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field.wide{grid-column:1/-1}
+label,.lbl{font-weight:600;font-size:.9rem}
+.hint{font-size:.8rem;color:var(--muted)}
+input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 11px;width:100%}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+input[type=number]{font-variant-numeric:tabular-nums}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 12px;font:600 .95rem "Assistant",sans-serif;cursor:pointer;min-width:44px}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.item{display:flex;flex-direction:column;gap:6px;padding-block:10px;border-top:1px solid var(--line)}
+.item:first-of-type{border-top:0;padding-top:0}
+.seg.stack{flex-direction:column}
+.seg.stack button{text-align:right}
+details summary{cursor:pointer;color:var(--accent);font-size:.85rem;font-weight:600}
+details p{margin:4px 0 0;max-width:65ch}
+.calc{background:var(--calc);color:var(--calc-ink);border-radius:10px;padding:9px 11px;font-weight:700;font-variant-numeric:tabular-nums;min-height:42px}
+.desc{font-size:.85rem;color:var(--muted);margin-top:6px;min-height:1.3em}
+.q{display:grid;grid-template-columns:64px 1fr;gap:4px 12px;padding-block:12px;border-top:1px solid var(--line)}
+.q:first-of-type{border-top:0}
+.qn{font:400 1.1rem "Secular One",sans-serif;grid-row:span 2;align-self:start}
+.qn small{display:block;font:400 .75rem "Assistant",sans-serif;color:var(--muted)}
+.qd{font-size:.85rem;color:var(--muted)}
+.bar{position:fixed;inset-inline:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:10px 16px}
+.bar .in{max-width:760px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.total{font-variant-numeric:tabular-nums}
+.total b{font:400 1.5rem "Secular One",sans-serif}
+.pills{display:flex;flex-wrap:wrap;gap:6px;font-size:.85rem}
+.pill{border-radius:999px;padding:2px 10px;background:var(--accent-soft)}
+.save{background:var(--accent);color:#fff;border:0;border-radius:12px;padding:12px 26px;font:700 1rem "Assistant",sans-serif;cursor:pointer}
+.toast{position:fixed;top:14px;inset-inline:16px;margin:auto;max-width:360px;background:var(--ink);color:var(--surface);padding:10px 14px;border-radius:10px;text-align:center}
+.lvl-good{color:var(--good)} .lvl-mid{color:var(--mid)} .lvl-low{color:var(--low)}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.tw{overflow-x:auto}
+th,td{text-align:right;padding:8px 6px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:.92rem}
+th{font-size:.8rem;color:var(--muted)}
+.link{background:none;border:0;color:var(--accent);font:600 .9rem "Assistant",sans-serif;cursor:pointer;padding:0}
+@media (prefers-reduced-motion:no-preference){.seg button{transition:background .12s}}
+.loading{padding:40px 0;text-align:center;color:var(--muted)}
+.new-btn{background:none;border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:11px 16px;font:600 .95rem "Assistant",sans-serif;cursor:pointer}
+.editing{background:var(--calc);color:var(--calc-ink);border-radius:10px;padding:8px 12px;font-size:.9rem;margin-bottom:12px}
+.save[disabled]{opacity:.6;cursor:wait}
+.wtools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.wgrid{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(20,auto);grid-auto-flow:column;gap:4px}
+.w{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 4px;font:600 1.05rem "Assistant",Arial,sans-serif;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:2px;min-width:0}
+.w span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.w i{font-style:normal;font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.w.ok{background:var(--accent-soft)}
+.w.err{background:var(--low);border-color:var(--low);color:#fff}
+.w.err i{color:#fff}
+.w.sc{border:2px dashed var(--accent);background:var(--accent-soft)}
+.w.sc i{color:var(--accent);font-weight:700}
+.w.last{outline:3px solid var(--ink);outline-offset:-1px}
+.w.after{opacity:.4}
+.wsum{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.wsum .calc{flex:1 1 140px;font-weight:600}
+.wsum .calc b{font-size:1.3rem}
+@media (max-width:440px){.w{justify-content:center;font-size:.95rem;padding:7px 2px}.w i{display:none}.w span{white-space:normal;overflow-wrap:anywhere;text-align:center}}
+.lgroup{margin-bottom:16px}
+.lgroup h3{font:400 1.05rem "Secular One",sans-serif;margin:0 0 2px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.lhead,.lrow{display:grid;grid-template-columns:52px repeat(3,1fr);gap:4px;align-items:center}
+.lhead{font-size:.75rem;color:var(--muted);font-weight:600;text-align:center;padding-bottom:4px}
+.lrow{padding:3px 0;border-top:1px solid var(--line)}
+.litem{font:600 1.3rem "Assistant",Arial,sans-serif;text-align:center}
+.asp{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:8px;padding:7px 2px;font:600 .9rem "Assistant",sans-serif;cursor:pointer;min-height:36px}
+.asp[data-v="ok"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.asp[data-v="err"]{background:var(--low);border-color:var(--low);color:#fff}
+.ltools{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px}
+.lsum{font-size:.85rem;color:var(--muted)}
+#timer.run{background:var(--ink);color:var(--surface)}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class="wrap"&gt;
+  &lt;header&gt;
+    &lt;h1&gt;מבדקי קריאה בכיתה&lt;/h1&gt;
+    &lt;span class="who" id="who"&gt;&lt;/span&gt;
+  &lt;/header&gt;
+  &lt;div class="tabs" role="tablist"&gt;
+    &lt;button class="tab" type="button" id="tab-new" role="tab" aria-selected="true"&gt;הזנה חדשה&lt;/button&gt;
+    &lt;button class="tab" type="button" id="tab-mine" role="tab" aria-selected="false"&gt;ההזנות שלי&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;div class="loading" id="loading"&gt;טוען...&lt;/div&gt;
+  &lt;div class="editing" id="editing" hidden&gt;&lt;/div&gt;
+
+  &lt;main id="view-new" hidden&gt;
+    &lt;section class="block"&gt;
+      &lt;h2&gt;פרטי המבדק&lt;/h2&gt;
+      &lt;div class="grid"&gt;
+        &lt;div class="field"&gt;&lt;label for="cls"&gt;כיתה&lt;/label&gt;&lt;select id="cls"&gt;&lt;/select&gt;&lt;/div&gt;
+        &lt;div class="field"&gt;&lt;label for="sid"&gt;מספר תלמיד&lt;/label&gt;&lt;input id="sid" type="number" inputmode="numeric" min="1"&gt;&lt;/div&gt;
+        &lt;div class="field"&gt;&lt;label for="date"&gt;תאריך&lt;/label&gt;&lt;input id="date" type="date"&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;section class="block" id="fluencyBlock"&gt;
+      &lt;h2&gt;פרופיל שטף קריאה&lt;/h2&gt;
+      &lt;div class="grid"&gt;
+        &lt;div class="field wide"&gt;&lt;span class="lbl"&gt;מה התלמיד קרא&lt;/span&gt;&lt;div class="seg" id="txtSeg"&gt;&lt;/div&gt;&lt;input id="txt" type="hidden"&gt;&lt;/div&gt;
+        &lt;div class="field wide" id="otherWrap" hidden&gt;
+          &lt;div class="grid"&gt;
+            &lt;div class="field"&gt;&lt;label for="otherName"&gt;שם הטקסט&lt;/label&gt;&lt;input id="otherName" autocomplete="off"&gt;&lt;/div&gt;
+            &lt;div class="field"&gt;&lt;label for="otherWords"&gt;מספר המילים בטקסט&lt;/label&gt;&lt;input id="otherWords" type="number" inputmode="numeric" min="1"&gt;&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="field"&gt;&lt;label for="words"&gt;מספר המילים&lt;/label&gt;&lt;input id="words" type="number" inputmode="numeric" min="0" readonly&gt;&lt;span class="hint"&gt;נקבע לפי הטקסט&lt;/span&gt;&lt;/div&gt;
+        &lt;div class="field wide"&gt;&lt;span class="lbl"&gt;סוג הטקסט&lt;/span&gt;&lt;div class="seg" data-key="nikud" data-opts="מנוקד|אינו מנוקד"&gt;&lt;/div&gt;&lt;/div&gt;
+        &lt;div class="field"&gt;&lt;label for="errors"&gt;מספר השגיאות&lt;/label&gt;&lt;input id="errors" type="number" inputmode="numeric" min="0"&gt;&lt;/div&gt;
+        &lt;div class="field"&gt;&lt;span class="lbl"&gt;דיוק&lt;/span&gt;&lt;div class="calc" id="acc"&gt;-&lt;/div&gt;&lt;span class="hint"&gt;מחושב לפי מספר השגיאות&lt;/span&gt;&lt;/div&gt;
+        &lt;div class="field"&gt;&lt;label for="secs"&gt;זמן קריאה בשניות&lt;/label&gt;&lt;input id="secs" type="number" inputmode="numeric" min="0"&gt;&lt;/div&gt;
+        &lt;div class="field"&gt;&lt;span class="lbl"&gt;מילים בדקה&lt;/span&gt;&lt;div class="calc" id="wpm"&gt;-&lt;/div&gt;&lt;span class="hint"&gt;מחושב אוטומטית&lt;/span&gt;&lt;/div&gt;
+        &lt;div class="field wide"&gt;&lt;span class="lbl"&gt;אופן הקריאה&lt;/span&gt;&lt;div class="seg" data-key="mode" data-opts="גלובלית ברובה|מקוטעת ברובה"&gt;&lt;/div&gt;&lt;/div&gt;
+        &lt;div class="field wide"&gt;&lt;span class="lbl"&gt;הערכה התרשמותית מקצב הקריאה&lt;/span&gt;&lt;div class="seg" data-key="pace" data-opts="נמוך|בינוני|גבוה"&gt;&lt;/div&gt;&lt;/div&gt;
+        &lt;div class="field wide"&gt;&lt;span class="lbl"&gt;פרוזודיה&lt;/span&gt;&lt;span class="hint"&gt;הנגנה בהתאם לתוכן ולתחביר&lt;/span&gt;&lt;div class="seg" data-key="prosody" data-opts="נמוכה|בינונית|גבוהה"&gt;&lt;/div&gt;&lt;/div&gt;
+        &lt;div class="field wide"&gt;&lt;span class="lbl"&gt;מידת ההבנה בשאלת הניטור&lt;/span&gt;&lt;div class="seg" data-key="comp" data-opts="גבוהה|בינונית|נמוכה"&gt;&lt;/div&gt;&lt;div class="desc" id="compDesc"&gt;&lt;/div&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;section class="block" id="wordsBlock"&gt;
+      &lt;h2 id="wTitle"&gt;קריאת מילים בודדות&lt;/h2&gt;
+      &lt;p class="hint" style="margin:0 0 10px"&gt;בוחרים מה מסמנים ומקישים על המילה: שגיאה, או תיקון עצמי (התלמיד טעה ותיקן לבד, נספר כקריאה נכונה). בסיום, "המילה האחרונה" והקשה על המילה שבה נעצרה הקריאה.&lt;/p&gt;
+      &lt;div class="wtools"&gt;
+        &lt;div class="seg" id="wmode"&gt;&lt;/div&gt;
+        &lt;button type="button" class="new-btn" id="timer"&gt;טיימר 45 שניות&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class="wgrid" id="wgrid"&gt;&lt;/div&gt;
+      &lt;div class="wsum" id="wsum"&gt;&lt;/div&gt;
+      &lt;div id="wextra" style="margin-top:14px"&gt;&lt;/div&gt;
+    &lt;/section&gt;
+    &lt;section class="block" id="lettersBlock" hidden&gt;
+      &lt;h2 id="lTitle"&gt;זיהוי, שיום והגייה&lt;/h2&gt;
+      &lt;p class="hint" style="margin:0 0 10px"&gt;מסמנים רק את מה שהתלמיד ידע. פריט שלא סומן נספר כ"לא ידע".&lt;/p&gt;
+      &lt;div id="letters"&gt;&lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;section class="block" id="qBlock"&gt;
+      &lt;h2&gt;הבנת הנקרא&lt;/h2&gt;
+      &lt;div class="field wide" style="margin-bottom:12px"&gt;&lt;span class="lbl"&gt;מבדק&lt;/span&gt;&lt;div class="seg" id="test"&gt;&lt;/div&gt;&lt;/div&gt;
+      &lt;h3 id="qTitle" style="font:400 1rem 'Secular One',sans-serif;margin:14px 0 4px"&gt;&lt;/h3&gt;
+      &lt;div id="questions"&gt;&lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;section class="block" id="heardBlock" hidden&gt;
+      &lt;h2&gt;הבנת הנשמע&lt;/h2&gt;
+      &lt;p class="hint" style="margin:0 0 10px"&gt;הטקסט מוקרא לתלמיד, והשאלות מנוקדות כרגיל.&lt;/p&gt;
+      &lt;div class="field wide" style="margin-bottom:12px"&gt;&lt;span class="lbl"&gt;הטקסט שהוקרא&lt;/span&gt;&lt;div class="seg" id="heardTest"&gt;&lt;/div&gt;&lt;/div&gt;
+      &lt;h3 id="heardTitle" style="font:400 1rem 'Secular One',sans-serif;margin:14px 0 4px"&gt;&lt;/h3&gt;
+      &lt;div id="heardQuestions"&gt;&lt;/div&gt;
+      &lt;div class="wsum" id="heardSum"&gt;&lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;div id="more"&gt;&lt;/div&gt;
+  &lt;/main&gt;
+
+  &lt;main id="view-mine" hidden&gt;
+    &lt;section class="block"&gt;
+      &lt;h2&gt;ההזנות שלי &lt;small&gt;רק מה שאת הזנת&lt;/small&gt;&lt;/h2&gt;
+      &lt;div class="field" style="max-width:220px;margin-bottom:10px"&gt;&lt;label for="mineCls"&gt;כיתה&lt;/label&gt;&lt;select id="mineCls"&gt;&lt;/select&gt;&lt;/div&gt;
+      &lt;div class="tw"&gt;&lt;table&gt;
+        &lt;thead&gt;&lt;tr&gt;&lt;th&gt;תאריך&lt;/th&gt;&lt;th&gt;כיתה&lt;/th&gt;&lt;th&gt;תלמיד&lt;/th&gt;&lt;th&gt;מבדק&lt;/th&gt;&lt;th&gt;דיוק&lt;/th&gt;&lt;th&gt;מילים בדקה&lt;/th&gt;&lt;th&gt;ציון&lt;/th&gt;&lt;th&gt;&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+        &lt;tbody id="rows"&gt;&lt;/tbody&gt;
+      &lt;/table&gt;&lt;/div&gt;
+    &lt;/section&gt;
+  &lt;/main&gt;
+&lt;/div&gt;
+
+&lt;div class="bar" id="bar" hidden&gt;&lt;div class="in"&gt;
+  &lt;div class="total" id="totalBox"&gt;ציון בשאלות: &lt;b id="tot"&gt;0&lt;/b&gt; / &lt;span id="max"&gt;100&lt;/span&gt;&lt;/div&gt;
+  &lt;div class="pills" id="pills"&gt;&lt;/div&gt;
+  &lt;button class="new-btn" id="clear" type="button"&gt;טופס חדש&lt;/button&gt;
+  &lt;button class="save" id="save" type="button"&gt;שמירה&lt;/button&gt;
+&lt;/div&gt;&lt;/div&gt;
+
+&lt;script&gt;
+let CFG=null, state=null;
+const $=id=&gt;document.getElementById(id);
+const COMP={"גבוהה":"הביע את דעתו, נימק אותה על פי הסיפור והתייחס לפואנטה.","בינונית":"הביע דעתו על הדמות בקצרה, בלי להתייחס לפואנטה.","נמוכה":"הביע דעתו ללא נימוק, או לא קשר את דבריו לסיפור."};
+const esc=s=&gt;String(s==null?"":s).replace(/[&amp;&lt;&gt;"]/g,c=&gt;({"&amp;":"&amp;amp;","&lt;":"&amp;lt;","&gt;":"&amp;gt;",'"':"&amp;quot;"}[c]));
+
+function call(fn,...args){if(typeof google==="undefined")return Promise.reject("הקובץ נפתח ישירות במחשב. האפליקציה עובדת רק אחרי ההדבקה ב-Apps Script והפריסה, דרך הקישור שמסתיים ב-/exec.");return new Promise((ok,fail)=&gt;google.script.run.withSuccessHandler(ok).withFailureHandler(e=&gt;fail(e&amp;&amp;e.message?e.message:String(e)))[fn](...args))}
+
+function seg(el,opts,get,set){
+  el.innerHTML="";
+  opts.forEach(o=&gt;{const b=document.createElement("button");b.type="button";b.textContent=o;b.setAttribute("aria-pressed",get()===o);b.onclick=()=&gt;{set(get()===o?null:o);seg(el,opts,get,set);update()};el.appendChild(b)});
+}
+function accuracy(e){if(e===""||isNaN(e))return null;e=+e;return e&lt;=4?["בינוני-גבוה","lvl-good"]:e&lt;=9?["בינוני-נמוך","lvl-mid"]:["נמוך","lvl-low"]}
+function maxOf(t){return t.qs.reduce((a,q)=&gt;a+q[1],0)}
+
+function blank(testKey){return {id:null,test:testKey,scores:{},choice:{},extra:null,wordsList:{last:null,errs:[],sc:[]},letters:{},heard:{test:null,scores:{}}}}
+
+let wMode="שגיאה", timerId=null;
+function renderWords(){
+  const W=CFG.words, wl=state.wordsList||(state.wordsList={last:null,errs:[],sc:[]});
+  $("wTitle").textContent=W.title;
+  if(!wl.sc)wl.sc=[];
+  seg($("wmode"),["שגיאה","תיקון עצמי","המילה האחרונה"],()=&gt;wMode,v=&gt;{wMode=v||"שגיאה"});
+  let n=0; const g=$("wgrid"); g.innerHTML="";
+  W.columns.forEach(col=&gt;col.forEach(word=&gt;{
+    const i=++n, b=document.createElement("button");
+    b.type="button";
+    const err=wl.errs.includes(i), sc=wl.sc.includes(i), after=wl.last&amp;&amp;i&gt;wl.last;
+    b.className="w"+(err?" err":sc?" sc":wl.last&amp;&amp;!after?" ok":"")+(wl.last===i?" last":"")+(after?" after":"");
+    b.innerHTML=`&lt;span&gt;${esc(word)}&lt;/span&gt;&lt;i&gt;${err?"✗":sc?"↺":i}&lt;/i&gt;`;
+    b.setAttribute("aria-label",`${word}, מילה ${i}${err?", שגיאה":""}${sc?", תיקון עצמי":""}${wl.last===i?", המילה האחרונה":""}`);
+    b.onclick=()=&gt;{
+      if(wMode==="המילה האחרונה"){wl.last=wl.last===i?null:i;if(wl.last){wMode="שגיאה"}}
+      else if(wMode==="תיקון עצמי"){wl.sc=sc?wl.sc.filter(x=&gt;x!==i):wl.sc.concat(i);wl.errs=wl.errs.filter(x=&gt;x!==i)}
+      else{wl.errs=err?wl.errs.filter(x=&gt;x!==i):wl.errs.concat(i);wl.sc=wl.sc.filter(x=&gt;x!==i)}
+      renderWords();
+    };
+    g.appendChild(b);
+  }));
+  const errs=wl.last?wl.errs.filter(x=&gt;x&lt;=wl.last).length:wl.errs.length, scs=wl.last?wl.sc.filter(x=&gt;x&lt;=wl.last).length:wl.sc.length;
+  $("wsum").innerHTML=wl.last
+    ?`&lt;div class="calc"&gt;נקראו בסך הכול: &lt;b&gt;${wl.last}&lt;/b&gt;&lt;/div&gt;&lt;div class="calc"&gt;נקראו נכונה ב-${W.seconds} שניות: &lt;b&gt;${wl.last-errs}&lt;/b&gt;&lt;/div&gt;&lt;div class="calc"&gt;שגיאות: &lt;b&gt;${errs}&lt;/b&gt;&lt;/div&gt;&lt;div class="calc"&gt;תיקונים עצמיים: &lt;b&gt;${scs}&lt;/b&gt;&lt;/div&gt;`
+    :`&lt;div class="calc"&gt;סומנו: &lt;b&gt;${errs}&lt;/b&gt; שגיאות, &lt;b&gt;${scs}&lt;/b&gt; תיקונים עצמיים. הסיכום יחושב אחרי סימון המילה האחרונה.&lt;/div&gt;`;
+  if(CFG.tests[state.test].words)update();
+}
+function toggleTimer(){
+  const b=$("timer");
+  if(timerId){clearInterval(timerId);timerId=null;b.classList.remove("run");b.textContent=`טיימר ${CFG.words.seconds} שניות`;return}
+  let left=CFG.words.seconds;b.classList.add("run");b.textContent=`${left} (עצירה)`;
+  timerId=setInterval(()=&gt;{left--;b.textContent=`${left} (עצירה)`;if(left&lt;=0){clearInterval(timerId);timerId=null;b.classList.remove("run");b.textContent="נגמר הזמן";if(navigator.vibrate)navigator.vibrate(300);wMode="המילה האחרונה";renderWords();toast("נגמר הזמן. הקישו על המילה האחרונה שנקראה.")}},1000);
+}
+
+function renderAllSegs(){
+  document.querySelectorAll(".seg[data-key]").forEach(el=&gt;seg(el,el.dataset.opts.split("|"),()=&gt;state.choice[el.dataset.key],v=&gt;{if(v==null)delete state.choice[el.dataset.key];else state.choice[el.dataset.key]=v}));
+}
+const WORDLIST="רשימת מילים";
+function storyKeys(){return Object.keys(CFG.tests).filter(k=&gt;!CFG.tests[k].words)}
+function wordsKey(){return Object.keys(CFG.tests).find(k=&gt;CFG.tests[k].words)}
+let lastStory=null;
+function hasMarks(){return Object.keys(state.scores).length||state.wordsList.errs.length||state.wordsList.last||Object.keys(state.heard.scores||{}).length}
+/** מעבר בין מבדקים. מחזיר false אם המורה ביטלה */
+function switchTest(k){
+  if(!k||k===state.test)return true;
+  if(hasMarks()&amp;&amp;!confirm("המעבר ימחק את מה שכבר סומן במבדק הנוכחי. להמשיך?"))return false;
+  if(!CFG.tests[state.test].words)lastStory=state.test;
+  state.test=k;state.scores={};state.extra=null;state.wordsList={last:null,errs:[],sc:[]};state.letters={};state.heard={test:null,scores:{}};
+  renderAllSegs();renderLetters();renderHeard();renderWords();renderQs();renderTexts();
+  return true;
+}
+function renderTest(){
+  const keys=storyKeys();
+  seg($("test"),keys.map(k=&gt;CFG.tests[k].name),()=&gt;CFG.tests[state.test].words?null:CFG.tests[state.test].name,v=&gt;{
+    switchTest(keys.find(k=&gt;CFG.tests[k].name===v));
+  });
+}
+function renderQs(){
+  const t=CFG.tests[state.test],box=$("questions");box.innerHTML="";
+  const isW=!!t.words;
+  document.querySelectorAll('#more [data-skipwords="1"]').forEach(el=&gt;el.hidden=isW);
+  $("wordsBlock").hidden=!isW;$("lettersBlock").hidden=!isW;$("heardBlock").hidden=!isW;$("qBlock").hidden=isW;$("totalBox").hidden=isW;
+  [...$("fluencyBlock").querySelector(".grid").children].slice(1).forEach(el=&gt;{ if(el.id!=="otherWrap") el.hidden=isW; });
+  if(isW)$("otherWrap").hidden=true;
+  $("max").textContent=maxOf(t);
+  $("qTitle").textContent=isW?"":`ציוני שאלות: ${t.qs.length} שאלות, ${maxOf(t)} נקודות`;
+  t.qs.forEach(([n,m,d])=&gt;{
+    const row=document.createElement("div");row.className="q";
+    row.innerHTML=`&lt;div class="qn"&gt;${esc(n)}&lt;small&gt;מתוך ${m}&lt;/small&gt;&lt;/div&gt;&lt;div class="qd"&gt;${esc(d)}&lt;/div&gt;&lt;div class="seg"&gt;&lt;/div&gt;`;
+    box.appendChild(row);
+    seg(row.querySelector(".seg"),Array.from({length:m+1},(_,i)=&gt;String(i)),()=&gt;state.scores[n]==null?null:String(state.scores[n]),v=&gt;{if(v==null)delete state.scores[n];else state.scores[n]=+v});
+  });
+  if(t.extra){
+    const row=document.createElement("div");row.className="q";
+    row.innerHTML=`&lt;div class="qn"&gt;✎&lt;small&gt;רמה&lt;/small&gt;&lt;/div&gt;&lt;div class="qd"&gt;${esc(t.extra.label)}&lt;/div&gt;&lt;div class="seg"&gt;&lt;/div&gt;`;
+    box.appendChild(row);
+    seg(row.querySelector(".seg"),t.extra.opts,()=&gt;state.extra,v=&gt;state.extra=v);
+  }
+  update();
+}
+const OTHER="טקסט אחר";
+function knownText(name){return CFG.texts.find(t=&gt;t.name===name)}
+function textLabel(){if(CFG.tests[state.test].words)return WORDLIST;const v=$("txt").value;return !v?null:(knownText(v)?v:OTHER)}
+function applyText(){
+  if(CFG.tests[state.test].words){ $("otherWrap").hidden=true; return; }
+  const k=knownText($("txt").value);
+  $("otherWrap").hidden=!!k||!$("txt").value;
+  if(k){ $("words").value=k.words; state.choice.nikud=k.nikud; }
+  else { $("words").value=$("otherWords").value||""; $("otherName").value=$("txt").value===OTHER?"":$("txt").value; }
+  $("words").readOnly=!!k;
+  renderAllSegs();
+}
+function renderTexts(){
+  seg($("txtSeg"),CFG.texts.map(t=&gt;t.name).concat([OTHER,WORDLIST]),textLabel,v=&gt;{
+    if(v===WORDLIST){ switchTest(wordsKey()); return; }
+    if(CFG.tests[state.test].words){ if(!switchTest(lastStory||storyKeys()[0]))return; }
+    if(v===OTHER){ $("txt").value=$("otherName").value||OTHER; }
+    else { $("txt").value=v||""; }
+    applyText();
+  });
+  applyText();
+}
+function renderHeard(){
+  if(!state.heard)state.heard={test:null,scores:{}};
+  const h=state.heard, keys=Object.keys(CFG.tests).filter(k=&gt;!CFG.tests[k].words);
+  seg($("heardTest"),keys.map(k=&gt;CFG.tests[k].name),()=&gt;h.test?CFG.tests[h.test].name:null,v=&gt;{
+    const k=keys.find(k=&gt;CFG.tests[k].name===v);
+    if(h.test&amp;&amp;k!==h.test&amp;&amp;Object.keys(h.scores).length&amp;&amp;!confirm("החלפת טקסט תמחק את הציונים שסומנו בהבנת הנשמע. להמשיך?"))return;
+    h.test=k||null; h.scores={}; renderHeard();
+  });
+  const box=$("heardQuestions"); box.innerHTML="";
+  if(!h.test){ $("heardTitle").textContent=""; $("heardSum").innerHTML=""; return }
+  const t=CFG.tests[h.test];
+  $("heardTitle").textContent=`ציוני שאלות: ${t.qs.length} שאלות, ${maxOf(t)} נקודות`;
+  t.qs.forEach(([n,m,d])=&gt;{
+    const row=document.createElement("div"); row.className="q";
+    row.innerHTML=`&lt;div class="qn"&gt;${esc(n)}&lt;small&gt;מתוך ${m}&lt;/small&gt;&lt;/div&gt;&lt;div class="qd"&gt;${esc(d)}&lt;/div&gt;&lt;div class="seg"&gt;&lt;/div&gt;`;
+    box.appendChild(row);
+    seg(row.querySelector(".seg"),Array.from({length:m+1},(_,i)=&gt;String(i)),()=&gt;h.scores[n]==null?null:String(h.scores[n]),v=&gt;{
+      if(v==null)delete h.scores[n]; else h.scores[n]=+v;
+      $("heardSum").innerHTML=`&lt;div class="calc"&gt;סה"כ: &lt;b&gt;${Object.values(h.scores).reduce((x,y)=&gt;x+y,0)}&lt;/b&gt; מתוך ${maxOf(t)}&lt;/div&gt;`;
+    });
+  });
+  $("heardSum").innerHTML=`&lt;div class="calc"&gt;סה"כ: &lt;b&gt;${Object.values(h.scores).reduce((x,y)=&gt;x+y,0)}&lt;/b&gt; מתוך ${maxOf(t)}&lt;/div&gt;`;
+}
+function renderLetters(){
+  const L=CFG.letters; if(!L)return;
+  if(!state.letters)state.letters={};
+  if(!state.heard)state.heard={test:null,scores:{}};
+  $("lTitle").textContent=L.title;
+  const box=$("letters"); box.innerHTML="";
+  L.groups.forEach(g=&gt;{
+    if(!state.letters[g.key])state.letters[g.key]={};
+    const marks=state.letters[g.key];
+    const wrap=document.createElement("div"); wrap.className="lgroup";
+    wrap.innerHTML=`&lt;h3&gt;${esc(g.title)}${g.hint?`&lt;small class="hint"&gt;${esc(g.hint)}&lt;/small&gt;`:""}&lt;/h3&gt;
+      &lt;div class="ltools"&gt;&lt;button type="button" class="new-btn" data-all="ok"&gt;הכול ידוע&lt;/button&gt;&lt;button type="button" class="new-btn" data-all=""&gt;ניקוי&lt;/button&gt;&lt;/div&gt;
+      &lt;div class="lhead"&gt;&lt;div&gt;&lt;/div&gt;${L.aspects.map(a=&gt;`&lt;div&gt;${esc(a)}&lt;/div&gt;`).join("")}&lt;/div&gt;`;
+    g.items.forEach(item=&gt;{
+      const row=document.createElement("div"); row.className="lrow";
+      row.innerHTML=`&lt;div class="litem"&gt;${esc(item)}&lt;/div&gt;`;
+      L.aspects.forEach(a=&gt;{
+        const v=(marks[item]||{})[a]||"";
+        const b=document.createElement("button");
+        b.type="button"; b.className="asp"; b.dataset.v=v;
+        b.textContent=v==="ok"?"✓":"–";
+        b.setAttribute("aria-label",`${item}, ${a}, ${v==="ok"?"ידע":"לא ידע"}`);
+        b.onclick=()=&gt;{
+          if(!marks[item])marks[item]={};
+          marks[item][a]=v==="ok"?"":"ok";
+          renderLetters();
+        };
+        row.appendChild(b);
+      });
+      wrap.appendChild(row);
+    });
+    const sum=document.createElement("div"); sum.className="lsum";
+    sum.textContent=L.aspects.map(a=&gt;{
+      let ok=0;
+      g.items.forEach(it=&gt;{if((marks[it]||{})[a]==="ok")ok++});
+      return `${a}: ידע ${ok} מתוך ${g.items.length}`;
+    }).join("  |  ");
+    wrap.appendChild(sum);
+    wrap.querySelectorAll("[data-all]").forEach(b=&gt;b.onclick=()=&gt;{
+      g.items.forEach(it=&gt;{marks[it]={};L.aspects.forEach(a=&gt;{if(b.dataset.all)marks[it][a]=b.dataset.all})});
+      renderLetters();
+    });
+    box.appendChild(wrap);
+  });
+}
+function renderWordItems(){
+  // ברשימת מילים: אופן הקריאה והערכת הקצב מופיעים בסוף הרשימה
+  const it=CFG.fluency.filter(f=&gt;f[0]==="mode"||f[0]==="pace");
+  $("wextra").innerHTML=it.map(f=&gt;`&lt;div class="item"&gt;&lt;div class="lbl"&gt;${esc(f[1])}&lt;/div&gt;&lt;div class="seg" data-key="${f[0]}" data-opts="${esc(f[2])}"&gt;&lt;/div&gt;&lt;/div&gt;`).join("");
+}
+function renderMore(){
+  $("more").innerHTML=CFG.more.map(s=&gt;`&lt;section class="block" data-skipwords="${s.skipWords?1:0}"&gt;&lt;h2&gt;${esc(s.title)}&lt;/h2&gt;${s.items.map(i=&gt;`&lt;div class="item"&gt;${s.items.length&gt;1||i.label!==s.title?`&lt;div class="lbl"&gt;${esc(i.label)}&lt;/div&gt;`:""}${i.desc?`&lt;details&gt;&lt;summary&gt;מה בודקים?&lt;/summary&gt;&lt;p class="hint"&gt;${esc(i.desc)}&lt;/p&gt;&lt;/details&gt;`:""}&lt;div class="seg${i.stack?" stack":""}" data-key="${i.key}" data-opts="${esc(i.opts)}"&gt;&lt;/div&gt;&lt;/div&gt;`).join("")}&lt;/section&gt;`).join("");
+}
+function update(){
+  if(CFG.tests[state.test].words){const wl=state.wordsList;$("pills").innerHTML=wl.last?`&lt;span class="pill"&gt;נקראו ${wl.last}, נכונות ${wl.last-wl.errs.filter(x=&gt;x&lt;=wl.last).length}&lt;/span&gt;`:`&lt;span class="pill"&gt;טרם סומנה המילה האחרונה&lt;/span&gt;`;return}
+  const a=accuracy($("errors").value);$("acc").textContent=a?a[0]:"-";$("acc").className="calc "+(a?a[1]:"");
+  const w=+$("words").value,s=+$("secs").value;$("wpm").textContent=w&amp;&amp;s?Math.round(w/s*60):"-";
+  $("tot").textContent=Object.values(state.scores).reduce((x,y)=&gt;x+y,0);
+  $("pills").innerHTML=`&lt;span class="pill"&gt;נוקדו ${Object.keys(state.scores).length} מתוך ${CFG.tests[state.test].qs.length}&lt;/span&gt;`;
+  $("compDesc").textContent=COMP[state.choice.comp]||"";
+}
+function fill(e){
+  state=e;
+  $("sid").value=e.sid||"";$("txt").value=e.txt||"";$("words").value=e.words===undefined?"":e.words;
+  if(e.txt&amp;&amp;!knownText(e.txt)){$("otherName").value=e.txt;$("otherWords").value=e.words||""}else{$("otherName").value="";$("otherWords").value=""}
+  renderTexts();
+  $("errors").value=e.errors===undefined?"":e.errors;$("secs").value=e.secs===undefined?"":e.secs;
+  if(e.cls)$("cls").value=e.cls;
+  if(e.date)$("date").value=e.date;else $("date").valueAsDate=new Date();
+  $("editing").hidden=!e.id;
+  if(e.id)$("editing").textContent=`עריכת הזנה קיימת: תלמיד ${e.sid}, כיתה ${e.cls}. השמירה תעדכן את אותה שורה בגיליון.`;
+  if(!state.wordsList)state.wordsList={last:null,errs:[],sc:[]};
+  if(!state.letters)state.letters={};
+  wMode="שגיאה";
+  renderTest();renderQs();renderAllSegs();renderWords();renderLetters();renderHeard();update();
+}
+function newForm(){
+  const keep={cls:$("cls").value,date:$("date").value,txt:$("txt").value,words:$("words").value||$("otherWords").value,test:state.test};
+  fill(Object.assign(blank(keep.test),{cls:keep.cls,date:keep.date,txt:keep.txt,words:keep.words}));
+  window.scrollTo({top:0});$("sid").focus();
+}
+
+async function save(){
+  if(!$("sid").value){toast("חסר מספר תלמיד");$("sid").focus();return}
+  if(!$("cls").value){toast("חסרה כיתה");return}
+  const btn=$("save");btn.disabled=true;btn.textContent="שומרת...";
+  const e={id:state.id,origCls:state.origCls,test:state.test,cls:$("cls").value,sid:$("sid").value,date:$("date").value,txt:$("txt").value,words:$("words").value||$("otherWords").value,errors:$("errors").value,secs:$("secs").value,choice:state.choice,scores:state.scores,extra:state.extra,wordsList:state.wordsList,letters:state.letters,heard:state.heard};
+  if(CFG.tests[state.test].words&amp;&amp;!state.wordsList.last){toast("יש לסמן את המילה האחרונה שנקראה");wMode="המילה האחרונה";renderWords();btn.disabled=false;btn.textContent="שמירה";return}
+  try{
+    await call("saveEntry",e);
+    toast(`נשמר: תלמיד ${e.sid}, כיתה ${e.cls}`);
+    newForm();
+  }catch(err){toast("השמירה נכשלה: "+err)}
+  finally{btn.disabled=false;btn.textContent="שמירה"}
+}
+
+async function renderRows(){
+  const cls=$("mineCls").value;
+  if(!cls){$("rows").innerHTML=`&lt;tr&gt;&lt;td colspan="8"&gt;בוחרים כיתה כדי לראות את ההזנות שלך בה.&lt;/td&gt;&lt;/tr&gt;`;return}
+  $("rows").innerHTML=`&lt;tr&gt;&lt;td colspan="8"&gt;טוען...&lt;/td&gt;&lt;/tr&gt;`;
+  try{
+    const list=await call("listMine",cls);
+    $("rows").innerHTML=list.length?list.map(r=&gt;`&lt;tr&gt;&lt;td&gt;${esc(r.date.split("-").reverse().join("."))}&lt;/td&gt;&lt;td&gt;${esc(r.cls)}&lt;/td&gt;&lt;td&gt;${esc(r.sid)}&lt;/td&gt;&lt;td&gt;${esc(r.testName)}&lt;/td&gt;&lt;td&gt;${esc(r.acc)}&lt;/td&gt;&lt;td&gt;${esc(r.wpm)}&lt;/td&gt;&lt;td&gt;${esc(r.score)}&lt;/td&gt;&lt;td&gt;&lt;button class="link" type="button" data-t="${r.test}" data-id="${r.id}"&gt;עריכה&lt;/button&gt;&lt;/td&gt;&lt;/tr&gt;`).join(""):`&lt;tr&gt;&lt;td colspan="8"&gt;עוד אין הזנות.&lt;/td&gt;&lt;/tr&gt;`;
+    $("rows").querySelectorAll("button[data-id]").forEach(b=&gt;b.onclick=async()=&gt;{
+      b.textContent="פותחת...";
+      try{const e=await call("getEntry",cls,b.dataset.t,b.dataset.id);show("new");fill(e);window.scrollTo({top:0})}
+      catch(err){toast(err);b.textContent="עריכה"}
+    });
+  }catch(err){$("rows").innerHTML=`&lt;tr&gt;&lt;td colspan="8"&gt;${esc(err)}&lt;/td&gt;&lt;/tr&gt;`}
+}
+function show(which){const n=which==="new";$("view-new").hidden=!n;$("view-mine").hidden=n;$("bar").hidden=!n;$("tab-new").setAttribute("aria-selected",n);$("tab-mine").setAttribute("aria-selected",!n);if(n)$("editing").hidden=!(state&amp;&amp;state.id);else{$("editing").hidden=true;if(!$("mineCls").value&amp;&amp;$("cls").value)$("mineCls").value=$("cls").value;renderRows()}}
+function toast(m){const d=document.createElement("div");d.className="toast";d.setAttribute("role","status");d.textContent=m;document.body.appendChild(d);setTimeout(()=&gt;d.remove(),3000)}
+
+$("tab-new").onclick=()=&gt;show("new");
+$("tab-mine").onclick=()=&gt;show("mine");
+$("save").onclick=save;
+$("timer").onclick=toggleTimer;
+$("clear").onclick=()=&gt;{if(confirm("לנקות את הטופס?"))newForm()};
+["errors","secs"].forEach(id=&gt;$(id).addEventListener("input",update));
+$("otherName").addEventListener("input",()=&gt;{$("txt").value=$("otherName").value||OTHER;update()});
+$("otherWords").addEventListener("input",()=&gt;{$("words").value=$("otherWords").value;update()});
+
+call("getInit").then(cfg=&gt;{
+  if(cfg.denied){$("loading").textContent="אין לך הרשאה להשתמש באפליקציה"+(cfg.email?" ("+cfg.email+")":"")+". אפשר לפנות לרכזת.";return}
+  CFG=cfg;
+  $("who").textContent=cfg.email?"מחוברת כ: "+cfg.email:"";
+  if(!cfg.classes.length){$("loading").textContent="עוד לא נוצרו גיליונות לכיתות. צריך להריץ בגיליון המרכזי: מבדקי קריאה &gt; יצירת תיקיות וגיליונות לכיתות.";return}
+  const opts=`&lt;option value=""&gt;בחירה&lt;/option&gt;`+cfg.classes.map(c=&gt;`&lt;option&gt;${esc(c)}&lt;/option&gt;`).join("");
+  $("cls").innerHTML=opts;$("mineCls").innerHTML=opts;
+  $("mineCls").onchange=renderRows;
+  renderMore();renderWordItems();
+  const first=Object.keys(cfg.tests)[0];
+  fill(blank(storyKeys()[0]));
+  $("loading").hidden=true;show("new");
+}).catch(err=&gt;{$("loading").textContent="לא הצלחתי לטעון: "+err});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</textarea>
+  </div>
+  <ol start="6">
+    <li>שומרים: <kbd>Ctrl</kbd>+<kbd>S</kbd>.</li>
+    <li>לא חובה: לוחצים על "פרויקט ללא שם" למעלה, וקוראים לו "מבדקי קריאה".</li>
+  </ol>
+  <div class="note"><b>בדיקה מהירה שההדבקה הצליחה:</b> ב-Index השורה הראשונה היא <kbd>&lt;!doctype html&gt;</kbd>. אם הכפתור לא מעתיק, לוחצים בתוך התיבה, <kbd>Ctrl</kbd>+<kbd>A</kbd> ואז <kbd>Ctrl</kbd>+<kbd>C</kbd>.</div>
+</section>
+
+<section class="step" id="s3">
+  <h2><span class="num">3</span>הכנת ההגדרות</h2>
+  <ol>
+    <li>חוזרים ללשונית של הגיליון ומרעננים את הדף (<kbd>F5</kbd>). בשורת התפריטים מופיע תפריט חדש: <b>"מבדקי קריאה"</b>.</li>
+    <li>בוחרים בו <span class="ui">1. הכנת לשונית ההגדרות</span>.</li>
+  </ol>
+  <figure><img src="img-menu.jpg" alt="Google Sheets: התפריט מבדקי קריאה פתוח ובו ארבע פעולות" loading="lazy"><figcaption>התפריט "מבדקי קריאה" מופיע ליד "עזרה". במסך צר הוא עלול להסתתר בקצה שורת התפריטים.</figcaption></figure>
+  <ol start="3">
+    <li><b>אישור הרשאות, רק בפעם הראשונה:</b> נפתח חלון של Google. בוחרים את החשבון של בית הספר. אם מופיע "Google hasn't verified this app": <span class="ui">Advanced</span> ← <span class="ui">Go to...</span>.</li>
+  </ol>
+  <div class="note"><b>חשוב מאוד:</b> בחלון ההרשאות יש <b>תיבות סימון</b> ליד כל הרשאה (Drive, Sheets ועוד). מסמנים את כולן, או את "בחירת הכול" למעלה, ורק אז <span class="ui">המשך</span>. בלי הסימון האפליקציה לא תוכל ליצור תיקיות ולשמור נתונים.</div>
+  <figure><img src="img-permissions.jpg" alt="חלון ההרשאות של Google עם תיבות סימון ריקות ליד הרשאות Drive ו-Sheets, וכפתורי ביטול והמשך" loading="lazy"><figcaption>כאן התיבות עוד ריקות. צריך לסמן אותן לפני "המשך".</figcaption></figure>
+  <ol start="4">
+    <li>אחרי האישור בוחרים שוב <span class="ui">1. הכנת לשונית ההגדרות</span>. נוצרת לשונית <b>"הגדרות"</b>. ממלאים שלוש עמודות:</li>
+  </ol>
+  <figure><img src="img-settings.jpg" alt="לשונית ההגדרות: עמודת כיתות ז1 עד יב1, עמודות תיקייה וגיליון ריקות, ועמודה H למורות מורשות" loading="lazy"><figcaption>הלשונית "הגדרות" אחרי ההכנה. העמודות "תיקייה" ו"גיליון" יתמלאו לבד בשלב הבא.</figcaption></figure>
+  <div class="cols">
+    <div class="col"><span class="tag">עמודה A</span><br><b>כיתות.</b> מופיעות ז1 עד יב1. משנים לפי בית הספר, כיתה אחת בכל שורה.</div>
+    <div class="col"><span class="tag">עמודה F</span><br><b>צופים.</b> מיילים של מי שתראה את כל הנתונים, בצפייה בלבד.</div>
+    <div class="col"><span class="tag">עמודה H</span><br><b>מורות מורשות.</b> מי שמזינה נתונים. מי שלא ברשימה לא תיכנס.</div>
+  </div>
+  <div class="tip">מי שיצרה את הגיליון מורשית תמיד, גם בלי להופיע ברשימה. כדאי לכתוב את המיילים כטקסט רגיל: אם גוגל הופכת מייל ל"צ'יפ" עם שם, לוחצים <kbd>Esc</kbd> לפני <kbd>Enter</kbd>.<br>אם התפריט לא מופיע: בעורך הקוד בוחרים <b>setup</b> ברשימה שליד "יומן ביצוע", ולוחצים <span class="ui">הפעלה ▷</span>.</div>
+</section>
+
+<section class="step" id="s4">
+  <h2><span class="num">4</span>יצירת התיקיות</h2>
+  <ol>
+    <li>בתפריט <b>"מבדקי קריאה"</b> בוחרים <span class="ui">2. יצירת תיקיות וגיליונות לכיתות</span>, ומחכים דקה או שתיים.</li>
+    <li>בסיום, בלשונית "הגדרות", ליד כל כיתה מופיעים קישור לתיקייה וקישור לגיליון. ב-Drive נוצרה תיקייה בשם <b>"מבדקי קריאה"</b>, והצופים קיבלו גישה אליה.</li>
+  </ol>
+  <figure><img src="img-folders.jpg" alt="לשונית ההגדרות אחרי יצירת התיקיות: ליד כל כיתה קישור לתיקייה ולגיליון, והודעה שנוצרו 11 כיתות" loading="lazy"><figcaption>ככה זה נראה בסיום: קישור לתיקייה ולגיליון ליד כל כיתה, והודעה בפינה ש"נוצרו 11 כיתות חדשות".</figcaption></figure>
+  <div class="tip">אם התפריט לא מופיע, אפשר להריץ את אותה פעולה מהעורך: בוחרים <b>createClassFolders</b> ולוחצים <span class="ui">הפעלה ▷</span>.</div>
+</section>
+
+<section class="step" id="s5">
+  <h2><span class="num">5</span>פרסום האפליקציה</h2>
+  <ol>
+    <li>בעורך: הכפתור הכחול <span class="ui">לפריסה</span> ← <span class="ui">פריסה חדשה</span>.</li>
+    <li>ליד "בחירת סוג": גלגל שיניים ⚙ ← <span class="ui">אפליקציית אינטרנט</span>.</li>
+    <li>ממלאים: <b>לבצע בתור:</b> עצמי (המייל שלך). <b>למי יש גישה:</b> האפשרות שמתחילה ב<b>"לכל מי שבדומיין"</b>, ואחריה שם הארגון (למשל "משרד החינוך - מחוז מרכז").</li>
+  </ol>
+  <div class="note"><b>שימו לב:</b> ברירת המחדל ב"למי יש גישה" היא <b>"רק לי"</b>. אם לא משנים, אף מורה לא תוכל להיכנס. פותחים את הרשימה ובוחרים "לכל מי שבדומיין...". לא לבחור "כל מי שיש לו חשבון Google" או "כולם".</div>
+  <div class="tip"><b>למה רשימת המורות חשובה:</b> "כל מי שבדומיין" יכול להיות ארגון גדול מאוד, למשל כל עובדי המחוז. מי שיש לו את הקישור ולא מופיע בעמודה H יקבל "אין הרשאה", ולכן חשוב למלא את הרשימה.</div>
+  <figure><img src="img-deploy.jpg" alt="חלון פריסה חדשה: אפליקציית אינטרנט, והשדה למי יש גישה מסומן במסגרת ועדיין מוגדר רק לי" loading="lazy"><figcaption>חלון הפריסה. השדה המסומן במסגרת הוא זה שצריך לשנות מ"רק לי" ל"לכל מי שבדומיין...".</figcaption></figure>
+  <ol start="4">
+    <li><span class="ui">פריסה</span>, ומעתיקים את <b>הקישור שמסתיים ב-‎/exec</b>. זה הקישור שנשלח למורות.</li>
+  </ol>
+  <div class="note"><b>אם "כל מי שבארגון" לא מופיע,</b> או שמורות מקבלות הודעת חסימה, כנראה שמנהל המערכת של בית הספר חוסם אפליקציות כאלה. צריך לפנות אליו.</div>
+</section>
+
+<section class="step" id="s6">
+  <h2><span class="num">6</span>בדיקה</h2>
+  <ol>
+    <li>פותחים את הקישור ומזינים תלמיד ניסיון אחד במבדק טקסט, ואחד ב"רשימת מילים".</li>
+  </ol>
+  <figure><img src="img-app.jpg" alt="האפליקציה: פרופיל שטף קריאה עם בחירת טקסט, מספר מילים, סוג טקסט, שגיאות וזמן קריאה, ופס שמירה בתחתית" loading="lazy"><figcaption>המסך שהמורה רואה: בחירת הטקסט, והדיוק והמילים בדקה מחושבים לבד. כפתור השמירה בפס התחתון.</figcaption></figure>
+  <ol start="2">
+    <li>ב"ההזנות שלי" פותחים את שניהם לעריכה, ובודקים שהכול חזר כמו שהוזן.</li>
+    <li>בודקים שהשורות נכנסו לגיליון של הכיתה, ו<b>מוחקים את שורות הניסיון</b>.</li>
+    <li>מבקשים ממורה מהרשימה להיכנס, ומאדם שלא ברשימה לנסות. הראשונה צריכה להיכנס, והשני צריך לקבל "אין הרשאה".</li>
+  </ol>
+</section>
+
+<section class="step" id="s7">
+  <h2><span class="num">7</span>שימוש שוטף</h2>
+  <ul>
+    <li><b>הוספת מורה:</b> כותבים את המייל שלה בעמודה H. זה חל מיד.</li>
+    <li><b>הוספת צופה:</b> מייל בעמודה F, ואז בתפריט <span class="ui">3. עדכון שיתוף עם הצופים</span>.</li>
+    <li><b>הוספת כיתה:</b> כותבים אותה בעמודה A, ומריצים שוב את "יצירת תיקיות וגיליונות". כיתות קיימות לא משתנות.</li>
+    <li><b>עדכון קוד:</b> מדביקים את הקבצים החדשים, שומרים, ואז <span class="ui">לפריסה</span> ← <span class="ui">ניהול פריסות</span> ← עיפרון ✏️ ← גרסה: <span class="ui">גרסה חדשה</span> ← <span class="ui">פריסה</span>. כך הקישור נשאר אותו קישור.</li>
+  </ul>
+  <div class="note"><b>לא לגעת:</b> בעמודה D המוסתרת בלשונית "הגדרות", ובשמות הלשוניות בגיליונות הכיתות.<br><b>פרטיות:</b> מזינים מספרי תלמידים בלבד. את הטבלה שמקשרת מספר לשם לא שומרים באף אחד מהגיליונות.</div>
+</section>
+
+<details class="ideas" id="ideas">
+  <summary>רעיונות לכלים נוספים</summary>
+  <div class="ideas-body">
+    <p><b>אותו מנגנון מתאים להרבה יותר ממבדקי קריאה.</b> בכל כלי כזה המורה מקבלת טופס נוח בנייד, עם כפתורים גדולים במקום תאים באקסל. הנתונים נשמרים אוטומטית בגיליון של הכיתה, החישובים נעשים לבד, וכל מורה רואה רק את מה שהיא הזינה.</p>
+
+    <div class="cols">
+      <div class="col"><span class="tag">לשימוש אישי</span><br><b>אפליקציה פרטית למורה אחת.</b> כלי שרק את משתמשת בו, למשל מעקב אחרי הכיתה שלך. בפריסה בוחרים "למי יש גישה: <b>רק לי</b>", ואין צורך ברשימת מורות.</div>
+      <div class="col"><span class="tag">לצוות</span><br><b>אפליקציה משותפת לכמה מורות.</b> כמו מבדקי הקריאה. בפריסה בוחרים "<b>לכל מי שבדומיין</b>", וממלאים את רשימת המורות המורשות.</div>
+    </div>
+
+    <h3>מה אפשר לבנות</h3>
+    <div class="idea-grid">
+      <div class="col"><h4>הערכה ומבדקים</h4><ul>
+        <li><b>עובדות יסוד בחשבון:</b> רשת תרגילים, "ידע / לא ידע", וסיכום של מה עוד לא נשלט.</li>
+        <li><b>מבדק כתיבה:</b> מחוון עם רמות לכל ממד (תוכן, מבנה, לשון, כתיב), וציון מחושב.</li>
+        <li><b>שטף קריאה באנגלית:</b> אותו מבנה, עם טקסטים באנגלית.</li>
+        <li><b>מבחן בעל פה או הצגת פרויקט:</b> ניקוד לפי מחוון בזמן שהתלמיד מציג.</li>
+      </ul></div>
+      <div class="col"><h4>תצפיות ומעקב</h4><ul>
+        <li><b>תצפית רגשית-חברתית:</b> השתתפות, ויסות ועבודה בקבוצה, מחוזק ללחיזוק.</li>
+        <li><b>מעקב התנהגות יומי:</b> כמה לחיצות בסוף שיעור, ותמונה שבועית לכל תלמיד.</li>
+        <li><b>תצפית עמיתים:</b> צפייה בשיעור לפי מחוון מוסכם.</li>
+        <li><b>נוכחות והגעה בזמן:</b> מהנייד, בכניסה לכיתה.</li>
+      </ul></div>
+      <div class="col"><h4>ליווי אישי</h4><ul>
+        <li><b>שיחות אישיות:</b> נושא, סיכום והמשך טיפול.</li>
+        <li><b>מעקב אחר תוכנית אישית (תל"א):</b> מטרות, התקדמות והערות לאורך השנה.</li>
+        <li><b>קשר עם הורים:</b> מתי, איך ועל מה.</li>
+      </ul></div>
+      <div class="col"><h4>ניהול כיתה ובית ספר</h4><ul>
+        <li><b>השאלת ציוד וספרים:</b> מי לקח, מתי, והאם החזיר.</li>
+        <li><b>הזמנת חדרים או ציוד משותף:</b> בלי כפילויות.</li>
+        <li><b>משוב תלמידים:</b> כמה שאלות קצרות בסוף שיעור או יחידה.</li>
+      </ul></div>
+    </div>
+
+    <div class="note"><b>בונים רק בחשבון הארגוני של בית הספר, לא בחשבון Gmail פרטי.</b>
+      <ul style="margin:6px 0 0;padding-inline-start:20px">
+        <li><b>פרטיות:</b> נתוני התלמידים נשארים בתוך מערכת בית הספר, ולא בחשבון אישי.</li>
+        <li><b>הגבלת גישה:</b> רק משתמשים מהארגון יכולים להיכנס, ומי שמבחוץ נחסם.</li>
+        <li><b>המשכיות:</b> הכלי והנתונים שייכים לבית הספר, ולא נעלמים כשמורה עוזבת או מחליפה חשבון.</li>
+      </ul>
+    </div>
+
+    <h3>מה משותף לכולם</h3>
+    <ol>
+      <li><b>מתחילים מטופס שכבר קיים,</b> באקסל, ב-Word או על נייר.</li>
+      <li><b>בונים בחשבון הארגוני בלבד,</b> כמו שמוסבר למעלה.</li>
+      <li><b>לא צריך לדעת לתכנת.</b> מספיק לתאר מה רוצים לתעד, ומה רוצים לקבל בחזרה.</li>
+      <li><b>חושבים קודם על הסוף:</b> סיכום כיתתי, מעקב לאורך זמן, או רשימת תלמידים לתשומת לב. זה קובע מה צריך להזין.</li>
+    </ol>
+
+    <h3>דוגמה: איך לבקש</h3>
+    <p>את הבקשה כותבים לכלי בינה מלאכותית, ומצרפים את הטופס הקיים. אפשר להעתיק ולשנות:</p>
+    <div class="prompt" id="prompt-1">אני מורה לחשבון בכיתה ג'. אני רוצה אפליקציה ב-Google Apps Script, בחשבון Google הארגוני של בית הספר, לתיעוד מבדק עובדות יסוד בכפל.
+מה אני מזינה: כיתה, מספר תלמיד, תאריך, ולכל תרגיל מ-2×2 עד 10×10: ידע או לא ידע.
+מה אני רוצה לקבל: כמה תרגילים כל תלמיד ידע, ואילו תרגילים רוב הכיתה עוד לא יודעת.
+חשוב לי: שזה יעבוד טוב בטלפון, שכל מורה תראה רק את מה שהיא הזינה, ושהנתונים יישמרו בגיליון נפרד לכל כיתה.
+מצורף הטופס הריק שאני משתמשת בו היום.</div>
+    <div class="prompt-bar"><button class="copy" type="button" id="copy-prompt" data-target="prompt-1">העתקת הדוגמה</button></div>
+    <div class="tip"><b>הכי חשוב בבקשה:</b> מה מזינים, מה רוצים לקבל בחזרה, ומי רואה מה. לכלי פרטי כותבים "רק אני אשתמש בזה", ואז הבקשה פשוטה יותר. כדאי לבקש לראות תצוגה מקדימה לפני שמתקינים.<br><b>לא מצרפים לכלי הבינה המלאכותית נתונים אמיתיים של תלמידים,</b> רק את הטופס הריק.</div>
+  </div>
+</details>
+
+<section class="contact" aria-labelledby="contact-title">
+  <div>
+    <h2 id="contact-title">נתקעתם? יש שאלה?</h2>
+    <p>אפשר לפנות אליי בוואטסאפ.</p>
+  </div>
+  <a class="wa" href="https://wa.me/message/VEBSRBKH4WT7M1" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.4-.2z"/></svg>שליחת הודעה בוואטסאפ</a>
+</section>
+
+<footer>ממעבדת הניסויים של מרי גרבי</footer>
+</div>
+
+<script>
+document.querySelectorAll("button.copy").forEach(btn=>{
+  btn.addEventListener("click",async()=>{
+    const ta=document.getElementById(btn.dataset.target); const val=("value" in ta)?ta.value:ta.innerText;
+    const label=btn.textContent;
+    let ok=false;
+    try{ await navigator.clipboard.writeText(val); ok=true; }
+    catch(e){
+      try{ if("select" in ta){ta.focus();ta.select();}else{const r=document.createRange();r.selectNodeContents(ta);const sel=getSelection();sel.removeAllRanges();sel.addRange(r);} ok=document.execCommand("copy"); }catch(e2){ ok=false; }
+    }
+    btn.textContent=ok?"הועתק ✓":"סמנו את התיבה והעתיקו ידנית";
+    btn.classList.toggle("done",ok);
+    setTimeout(()=>{btn.textContent=label;btn.classList.remove("done")},2500);
+  });
+});
+document.querySelectorAll('a[href="#ideas"]').forEach(a=>a.addEventListener("click",()=>{document.getElementById("ideas").open=true}));
+if(location.hash==="#ideas")document.getElementById("ideas").open=true;
+</script>
+
+</body>
+</html>
