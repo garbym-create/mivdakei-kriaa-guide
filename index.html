@@ -107,6 +107,7 @@ a.wa svg{width:20px;height:20px;fill:currentColor}
     <li><a href="#s5">פרסום האפליקציה</a></li>
     <li><a href="#s6">בדיקה</a></li>
     <li><a href="#s7">שימוש שוטף</a></li>
+    <li><a href="#s8">אבטחה ופרטיות</a></li>
     <li><a href="#ideas">רעיונות לכלים נוספים</a></li>
   </ol>
 </nav>
@@ -1278,6 +1279,28 @@ call("getInit").then(cfg=&gt;{
   <div class="note"><b>לא לגעת:</b> בעמודה D המוסתרת בלשונית "הגדרות", ובשמות הלשוניות בגיליונות הכיתות.<br><b>פרטיות:</b> מזינים מספרי תלמידים בלבד. את הטבלה שמקשרת מספר לשם לא שומרים באף אחד מהגיליונות.</div>
 </section>
 
+<section class="step" id="s8">
+  <h2><span class="num">🔒</span>אבטחה ופרטיות</h2>
+  <div class="cols">
+    <div class="col"><span class="tag">מובנה באפליקציה</span>
+      <ul style="margin:6px 0 0;padding-inline-start:18px">
+        <li><b>רשימת מורות מורשות:</b> מי שלא ברשימה לא נכנסת, גם עם קישור ומייל ארגוני.</li>
+        <li><b>כל מורה רואה ועורכת רק את ההזנות שלה.</b> השרת בודק את זה בכל פעולה, לא רק המסך.</li>
+        <li><b>בדיקת קלט:</b> כל הזנה נבדקת לפני השמירה. בחירות חייבות להיות מהרשימה, מספרים בטווח סביר, ונוסחאות או קוד בשדות טקסט מנוטרלים.</li>
+        <li><b>אין דריסה:</b> שתי מורות ששומרות באותו רגע לא מוחקות אחת את השנייה.</li>
+      </ul>
+    </div>
+    <div class="col"><span class="tag">באחריותך</span>
+      <ul style="margin:6px 0 0;padding-inline-start:18px">
+        <li><b>הקישור:</b> שולחים רק בקבוצה סגורה של המורות. לא בקבוצה עם תלמידים או הורים, ולא מפרסמים.</li>
+        <li><b>רשימת המורות:</b> מורה שעוזבת, מוחקים את המייל שלה מעמודה H.</li>
+        <li><b>שמות:</b> מזינים מספרי תלמידים בלבד, ואת טבלת השמות שומרים בנפרד.</li>
+        <li><b>הגישה:</b> בפריסה בוחרים רק "לכל מי שבדומיין", אף פעם לא "כולם".</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
 <details class="ideas" id="ideas">
   <summary>רעיונות לכלים נוספים</summary>
   <div class="ideas-body">
@@ -1336,6 +1359,7 @@ call("getInit").then(cfg=&gt;{
 מה אני מזינה: כיתה, מספר תלמיד, תאריך, ולכל תרגיל מ-2×2 עד 10×10: ידע או לא ידע.
 מה אני רוצה לקבל: כמה תרגילים כל תלמיד ידע, ואילו תרגילים רוב הכיתה עוד לא יודעת.
 חשוב לי: שזה יעבוד טוב בטלפון, שכל מורה תראה רק את מה שהיא הזינה, ושהנתונים יישמרו בגיליון נפרד לכל כיתה.
+חשוב לי גם שתהיה רשימה של מי מורשה להיכנס, ושהקוד יבדוק כל הזנה לפני השמירה.
 מצורף הטופס הריק שאני משתמשת בו היום.</div>
     <div class="prompt-bar"><button class="copy" type="button" id="copy-prompt" data-target="prompt-1">העתקת הדוגמה</button></div>
     <div class="tip"><b>הכי חשוב בבקשה:</b> מה מזינים, מה רוצים לקבל בחזרה, ומי רואה מה. לכלי פרטי כותבים "רק אני אשתמש בזה", ואז הבקשה פשוטה יותר. כדאי לבקש לראות תצוגה מקדימה לפני שמתקינים.<br><b>לא מצרפים לכלי הבינה המלאכותית נתונים אמיתיים של תלמידים,</b> רק את הטופס הריק.</div>
@@ -1357,7 +1381,7 @@ call("getInit").then(cfg=&gt;{
 <script>
 document.querySelectorAll("button.copy").forEach(btn=>{
   btn.addEventListener("click",async()=>{
-    const ta=document.getElementById(btn.dataset.target); const val=("value" in ta)?ta.value:ta.innerText;
+    const ta=document.getElementById(btn.dataset.target); const val=("value" in ta)?ta.value:ta.textContent;
     const label=btn.textContent;
     let ok=false;
     try{ await navigator.clipboard.writeText(val); ok=true; }
