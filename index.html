@@ -226,6 +226,7 @@ function onOpen() {
     .addItem('1. הכנת לשונית ההגדרות', 'setup')
     .addItem('2. יצירת תיקיות וגיליונות לכיתות', 'createClassFolders')
     .addItem('3. עדכון שיתוף עם הצופים', 'shareWithViewers')
+    .addItem('4. בדיקת מערכת', 'systemCheck')
     .addSeparator()
     .addItem('איפוס לשוניות המבדקים (רק כשאין נתונים)', 'resetTestSheets')
     .addToUi();
@@ -437,6 +438,166 @@ function sanitizeEntry_(raw) {
   return out;
 }
 
+/* ---------- יומן שגיאות ובדיקת מערכת ---------- */
+
+const LOG_SHEET = 'יומן שגיאות';
+
+function saveEntry(raw) {
+  try { return saveEntry_(raw); }
+  catch (err) { logError_('שמירה', err, raw &amp;&amp; raw.cls, raw &amp;&amp; raw.test, raw &amp;&amp; raw.sid); throw err; }
+}
+
+function listMine(cls) {
+  try { return listMine_(cls); }
+  catch (err) { logError_('ההזנות שלי', err, cls); throw err; }
+}
+
+function getEntry(cls, testKey, id) {
+  try { return getEntry_(cls, testKey, id); }
+  catch (err) { logError_('פתיחה לעריכה', err, cls, testKey); throw err; }
+}
+
+/** רושם תקלה בלשונית "יומן שגיאות" בגיליון המרכזי. תקלה ברישום עצמו לא מפילה את האפליקציה. */
+function logError_(action, err, cls, testKey, sid) {
+  try {
+    const ss = SpreadsheetApp.getActive();
+    let sh = ss.getSheetByName(LOG_SHEET);
+    if (!sh) {
+      sh = ss.insertSheet(LOG_SHEET);
+      sh.setRightToLeft(true);
+      sh.getRange(1, 1, 1, 7).setValues([['מתי', 'משתמש', 'פעולה', 'כיתה', 'מבדק', 'מספר תלמיד', 'מה קרה']])
+        .setFontWeight('bold').setBackground('#FCE9C8');
+      sh.setFrozenRows(1);
+      sh.setColumnWidth(7, 420);
+    }
+    const msg = String(err &amp;&amp; err.message ? err.message : err);
+    const blocked = /אין לך הרשאה|לא זוהה משתמש/.test(msg);
+    const testName = testKey &amp;&amp; TESTS[testKey] ? TESTS[testKey].name : (testKey || '');
+    sh.appendRow([new Date(), userEmail_() || 'לא מזוהה', (blocked ? 'חסימה: ' : '') + action,
+      cleanText_(cls || '', 20), testName, cleanText_(sid || '', 10), cleanText_(msg, 300)]);
+    // שומרים רק 2,000 שורות אחרונות
+    const extra = sh.getLastRow() - 1 - 2000;
+    if (extra &gt; 0) sh.deleteRows(2, extra);
+  } catch (e) { /* לא מפילים את האפליקציה בגלל היומן */ }
+}
+
+/**
+ * בדיקת מערכת בלחיצה אחת: הגדרות, גיליונות, עמודות, שיתוף,
+ * ובדיקה אמיתית של שמירה, קריאה ומחיקה בכל אחד מהמבדקים.
+ */
+function systemCheck() {
+  const ok = [], warn = [];
+  const ss = SpreadsheetApp.getActive();
+
+  // 1. הגדרות
+  const st = ss.getSheetByName(SETTINGS_SHEET);
+  if (!st) { warn.push('אין לשונית "הגדרות". צריך להריץ "1. הכנת לשונית ההגדרות".'); return report_(ok, warn); }
+  const rows = classRows_();
+  const noSheet = rows.filter(r =&gt; !r.id).map(r =&gt; r.cls);
+  ok.push('כיתות ברשימה: ' + rows.length);
+  if (noSheet.length) warn.push('כיתות בלי גיליון: ' + noSheet.join(', ') + '. צריך להריץ "2. יצירת תיקיות וגיליונות".');
+
+  const col = c =&gt; st.getLastRow() &lt; 2 ? [] : st.getRange(2, c, st.getLastRow() - 1, 1).getValues()
+    .map(r =&gt; String(r[0]).trim()).filter(Boolean);
+  const mailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const teachers = col(COL_TEACHERS), viewers = col(COL_VIEWERS);
+  if (!teachers.length) warn.push('רשימת המורות המורשות (עמודה H) ריקה. רק את יכולה להיכנס.');
+  else ok.push('מורות מורשות: ' + teachers.length);
+  const badT = teachers.filter(m =&gt; !mailRe.test(m));
+  if (badT.length) warn.push('בעמודה H יש ערכים שלא נראים כמו מייל: ' + badT.join(', '));
+  const badV = viewers.filter(m =&gt; !mailRe.test(m));
+  if (badV.length) warn.push('בעמודה F יש ערכים שלא נראים כמו מייל: ' + badV.join(', '));
+  const gmail = teachers.concat(viewers).filter(m =&gt; /@gmail\.com$/i.test(m));
+  if (gmail.length) warn.push('יש מיילים פרטיים של Gmail ברשימות: ' + gmail.join(', ') + '. מומלץ רק מיילים ארגוניים.');
+
+  // 2. שיתוף התיקייה עם הצופים
+  try {
+    const rootId = PropertiesService.getScriptProperties().getProperty('ROOT_FOLDER_ID');
+    if (rootId) {
+      const shared = DriveApp.getFolderById(rootId).getViewers().map(u =&gt; u.getEmail().toLowerCase());
+      const missing = viewers.filter(v =&gt; mailRe.test(v) &amp;&amp; shared.indexOf(v.toLowerCase()) &lt; 0);
+      if (missing.length) warn.push('צופים שעוד לא קיבלו גישה לתיקייה: ' + missing.join(', ') + '. צריך להריץ "3. עדכון שיתוף".');
+      else if (viewers.length) ok.push('כל הצופים משותפים לתיקייה');
+    }
+  } catch (err) { warn.push('לא הצלחתי לבדוק את שיתוף התיקייה: ' + err.message); }
+
+  // 3. כל גיליון כיתה נפתח, והלשוניות והעמודות תואמות לקוד
+  let sheetsOk = 0;
+  rows.filter(r =&gt; r.id).forEach(r =&gt; {
+    try {
+      const book = SpreadsheetApp.openById(r.id);
+      Object.keys(TESTS).forEach(k =&gt; {
+        const sh = sheetFor_(book, k); // יוצר לשונית חסרה ומשלים כותרות חסרות
+        const need = headers_(TESTS[k]).length;
+        if (sh.getLastColumn() &lt; need) warn.push(r.cls + ' - ' + TESTS[k].name + ': חסרות עמודות.');
+      });
+      sheetsOk++;
+    } catch (err) { warn.push('הגיליון של ' + r.cls + ' לא נפתח: ' + err.message); }
+  });
+  if (sheetsOk) ok.push('גיליונות כיתה תקינים: ' + sheetsOk);
+
+  // 4. בדיקה אמיתית: שמירה, קריאה ומחיקה בכל מבדק, בכיתה הראשונה
+  const first = rows.filter(r =&gt; r.id)[0];
+  if (first) {
+    Object.keys(TESTS).forEach(k =&gt; {
+      const t = TESTS[k];
+      const entry = { test: k, cls: first.cls, sid: 99999, date: fmtDate_(new Date()), choice: { mode: 'גלובלית ברובה' }, scores: {} };
+      if (t.words) {
+        entry.wordsList = { last: 20, errs: [2], sc: [3], hes: [4], frag: [5], skip: [6] };
+        entry.letters = { ot: { 'א': { 'זיהוי': 'ok' } } };
+        entry.heard = { test: Object.keys(TESTS).filter(x =&gt; !TESTS[x].words)[0], scores: { '1': 1 } };
+      } else {
+        entry.txt = FLUENCY_TEXTS[0].name; entry.errors = 3; entry.secs = 120;
+        entry.scores[t.qs[0][0]] = 1;
+      }
+      let id = null;
+      try {
+        id = saveEntry_(entry).id;
+        const back = getEntry_(first.cls, k, id);
+        const good = t.words
+          ? back.wordsList.last === 20 &amp;&amp; back.wordsList.errs.join() === '2' &amp;&amp; back.wordsList.skip.join() === '6' &amp;&amp; back.wordsList.hes.join() === '4'
+          : back.scores[t.qs[0][0]] === 1 &amp;&amp; Number(back.errors) === 3;
+        if (good) ok.push('שמירה וקריאה ב"' + t.name + '" עובדות');
+        else warn.push('ב"' + t.name + '" נשמר משהו שונה ממה שנשלח.');
+      } catch (err) {
+        warn.push('שמירה ב"' + t.name + '" נכשלה: ' + err.message);
+      } finally {
+        if (id) {
+          try {
+            const sh = SpreadsheetApp.openById(first.id).getSheetByName(t.name);
+            const r = findRow_(sh, id);
+            if (r) sh.deleteRow(r);
+          } catch (e) { warn.push('שורת הבדיקה ב"' + t.name + '" לא נמחקה. אפשר למחוק ידנית: תלמיד 99999.'); }
+        }
+      }
+    });
+  }
+
+  // 5. תקלות בשבוע האחרון
+  const log = ss.getSheetByName(LOG_SHEET);
+  if (log &amp;&amp; log.getLastRow() &gt; 1) {
+    const weekAgo = new Date(Date.now() - 7 * 864e5);
+    const recent = log.getRange(2, 1, log.getLastRow() - 1, 3).getValues().filter(r =&gt; r[0] instanceof Date &amp;&amp; r[0] &gt; weekAgo);
+    const blocked = recent.filter(r =&gt; String(r[2]).indexOf('חסימה') === 0).length;
+    const errors = recent.length - blocked;
+    if (errors) warn.push('תקלות בשבוע האחרון: ' + errors + '. הפירוט בלשונית "' + LOG_SHEET + '".');
+    else ok.push('אין תקלות בשבוע האחרון');
+    if (blocked) warn.push('ניסיונות כניסה של מי שלא ברשימה בשבוע האחרון: ' + blocked + '.');
+  } else {
+    ok.push('אין תקלות רשומות');
+  }
+
+  return report_(ok, warn);
+}
+
+function report_(ok, warn) {
+  const text = (warn.length ? '⚠️ צריך לטפל:\n' + warn.map(w =&gt; '• ' + w).join('\n') + '\n\n' : '✅ הכול תקין!\n\n') +
+    '✅ תקין:\n' + ok.map(o =&gt; '• ' + o).join('\n');
+  try { SpreadsheetApp.getUi().alert('בדיקת מערכת', text, SpreadsheetApp.getUi().ButtonSet.OK); }
+  catch (e) { Logger.log(text); }
+  return { ok: ok, warn: warn };
+}
+
 /* ---------- נתונים לאפליקציה ---------- */
 
 function getInit() {
@@ -446,7 +607,7 @@ function getInit() {
   return { email: userEmail_(), classes: classes, tests: TESTS, fluency: FLUENCY, texts: FLUENCY_TEXTS, more: MORE, words: WORDS, letters: LETTERS };
 }
 
-function saveEntry(raw) {
+function saveEntry_(raw) {
   const email = requireAllowed_();
   const e = sanitizeEntry_(raw);
   const test = TESTS[e.test];
@@ -480,7 +641,7 @@ function saveEntry(raw) {
 }
 
 /** ההזנות של המורה המחוברת, בכיתה אחת */
-function listMine(cls) {
+function listMine_(cls) {
   const email = requireAllowed_();
   const ss = classSs_(cls);
   const out = [];
@@ -506,7 +667,7 @@ function listMine(cls) {
   return out.sort((a, b) =&gt; (a.date &lt; b.date ? 1 : -1));
 }
 
-function getEntry(cls, testKey, id) {
+function getEntry_(cls, testKey, id) {
   requireAllowed_();
   const test = TESTS[testKey];
   if (!test) throw new Error('מבדק לא מוכר');
@@ -1304,6 +1465,8 @@ call("getInit").then(cfg=&gt;{
 <section class="step" id="s7">
   <h2><span class="num">7</span>שימוש שוטף</h2>
   <ul>
+    <li><b>בדיקת מערכת:</b> בתפריט <span class="ui">4. בדיקת מערכת</span>. בלחיצה אחת נבדקים ההגדרות, הגיליונות, השיתוף, ושמירה אמיתית בכל אחד מהמבדקים (שורת הבדיקה נמחקת לבד). מומלץ אחרי כל עדכון קוד, ופעם בשבוע בתקופת הזנה.</li>
+    <li><b>יומן שגיאות:</b> כל שמירה שנכשלה, וכל ניסיון כניסה של מי שלא ברשימה, נרשמים לבד בלשונית <b>"יומן שגיאות"</b> בגיליון המרכזי.</li>
     <li><b>הוספת מורה:</b> כותבים את המייל שלה בעמודה H. זה חל מיד.</li>
     <li><b>הוספת צופה:</b> מייל בעמודה F, ואז בתפריט <span class="ui">3. עדכון שיתוף עם הצופים</span>.</li>
     <li><b>הוספת כיתה:</b> כותבים אותה בעמודה A, ומריצים שוב את "יצירת תיקיות וגיליונות". כיתות קיימות לא משתנות.</li>
