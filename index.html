@@ -417,7 +417,7 @@ function sanitizeEntry_(raw) {
   const idxList = arr =&gt; (Array.isArray(arr) ? arr : []).map(x =&gt; cleanInt_(x, 1, total)).filter(x =&gt; x !== '')
     .filter((x, i, a) =&gt; a.indexOf(x) === i);
   const wl = e.wordsList || {};
-  out.wordsList = { last: cleanInt_(wl.last, 1, total) || null, errs: idxList(wl.errs), sc: idxList(wl.sc) };
+  out.wordsList = { last: cleanInt_(wl.last, 1, total) || null, errs: idxList(wl.errs), sc: idxList(wl.sc), hes: idxList(wl.hes), frag: idxList(wl.frag), skip: idxList(wl.skip) };
 
   out.letters = {};
   const lt = e.letters || {};
@@ -532,7 +532,7 @@ function getEntry(cls, testKey, id) {
     });
     e.choice.mode = v[c]; e.choice.pace = v[c + 1]; c += 2;
     moreItems_(test).forEach(it =&gt; { if (v[c] !== '') e.choice[it.key] = v[c]; c++; });
-    e.wordsList = { last: v[c + 4] === '' ? null : Number(v[c + 4]), errs: nums(v[c + 5]), sc: nums(v[c + 8]) };
+    e.wordsList = { last: v[c + 4] === '' ? null : Number(v[c + 4]), errs: nums(v[c + 5]), sc: nums(v[c + 8]), skip: nums(v[c + 19]), hes: nums(v[c + 20]), frag: nums(v[c + 21]) };
     const hName = v[c + 9];
     e.heard = { test: null, scores: {} };
     Object.keys(TESTS).forEach(k =&gt; { if (TESTS[k].name === hName) e.heard.test = k; });
@@ -562,7 +562,8 @@ function headers_(test) {
     }));
     h.push('אופן הקריאה', 'הערכה התרשמותית מקצב');
     moreItems_(test).forEach(it =&gt; h.push(it.label));
-    return h.concat(['נקראו בסך הכול (כולל שגיאות)', 'נקראו נכונה ב-' + WORDS.seconds + ' שניות', 'שגיאות', 'המילים השגויות', 'המילה האחרונה (מספר)', 'שגויות (מספרים)', 'תיקונים עצמיים', 'המילים שתוקנו', 'תוקנו (מספרים)', 'הבנת הנשמע: המבדק', 'הבנת הנשמע: סה"כ', 'הבנת הנשמע: מתוך', 'הבנת הנשמע: פירוט']);
+    return h.concat(['נקראו בסך הכול (כולל שגיאות)', 'נקראו נכונה ב-' + WORDS.seconds + ' שניות', 'שגיאות', 'המילים השגויות', 'המילה האחרונה (מספר)', 'שגויות (מספרים)', 'תיקונים עצמיים', 'המילים שתוקנו', 'תוקנו (מספרים)', 'הבנת הנשמע: המבדק', 'הבנת הנשמע: סה"כ', 'הבנת הנשמע: מתוך', 'הבנת הנשמע: פירוט',
+      'דילוגים', 'המילים שדולגו', 'היסוסים', 'המילים בהיסוס', 'קריאה מקוטעת', 'המילים המקוטעות', 'דילוגים (מספרים)', 'היסוסים (מספרים)', 'מקוטעות (מספרים)']);
   }
   const h = base.concat(['שם הטקסט','סוג הטקסט','מספר המילים','מספר השגיאות','דיוק','זמן קריאה (שניות)','מילים בדקה',
     'אופן הקריאה','הערכה התרשמותית מקצב','פרוזודיה','מידת ההבנה (שאלת ניטור)']);
@@ -614,7 +615,11 @@ function buildRow_(e, test, email) {
     const last = wl.last ? Math.min(Number(wl.last), flat.length) : 0;
     if (!last) throw new Error('יש לסמן את המילה האחרונה שנקראה');
     const errs = (wl.errs || []).map(Number).filter(i =&gt; i &gt;= 1 &amp;&amp; i &lt;= last).sort((a, b) =&gt; a - b);
-    const sc = (wl.sc || []).map(Number).filter(i =&gt; i &gt;= 1 &amp;&amp; i &lt;= last &amp;&amp; errs.indexOf(i) &lt; 0).sort((a, b) =&gt; a - b);
+    const pick = arr =&gt; (arr || []).map(Number).filter(i =&gt; i &gt;= 1 &amp;&amp; i &lt;= last).sort((a, b) =&gt; a - b);
+    const skip = pick(wl.skip).filter(i =&gt; errs.indexOf(i) &lt; 0);
+    const sc = pick(wl.sc).filter(i =&gt; errs.indexOf(i) &lt; 0 &amp;&amp; skip.indexOf(i) &lt; 0);
+    const hes = pick(wl.hes).filter(i =&gt; errs.indexOf(i) &lt; 0 &amp;&amp; skip.indexOf(i) &lt; 0 &amp;&amp; sc.indexOf(i) &lt; 0);
+    const frag = pick(wl.frag).filter(i =&gt; errs.indexOf(i) &lt; 0 &amp;&amp; skip.indexOf(i) &lt; 0 &amp;&amp; sc.indexOf(i) &lt; 0 &amp;&amp; hes.indexOf(i) &lt; 0);
     const hd = e.heard || {};
     const hTest = TESTS[hd.test];
     let hTot = 0, hMax = 0; const detail = [];
@@ -625,8 +630,9 @@ function buildRow_(e, test, email) {
         if (v !== undefined &amp;&amp; v !== null &amp;&amp; v !== '') { hTot += Number(v); detail.push(q[0] + ':' + v); }
       });
     }
-    return row.concat([last, last - errs.length, errs.length, errs.map(i =&gt; flat[i - 1]).join(', '), last, errs.join(','), sc.length, sc.map(i =&gt; flat[i - 1]).join(', '), sc.join(','),
-      hTest ? hTest.name : '', hTest ? hTot : '', hTest ? hMax : '', detail.join(' ')]);
+    return row.concat([last, last - errs.length - skip.length, errs.length, errs.map(i =&gt; flat[i - 1]).join(', '), last, errs.join(','), sc.length, sc.map(i =&gt; flat[i - 1]).join(', '), sc.join(','),
+      hTest ? hTest.name : '', hTest ? hTot : '', hTest ? hMax : '', detail.join(' '),
+      skip.length, skip.map(i =&gt; flat[i - 1]).join(', '), hes.length, hes.map(i =&gt; flat[i - 1]).join(', '), frag.length, frag.map(i =&gt; flat[i - 1]).join(', '), skip.join(','), hes.join(','), frag.join(',')]);
   }
 
   const row = head.concat([e.txt || '', nikud, words, errors, acc, secs, wpm,
@@ -656,6 +662,12 @@ function sheetFor_(ss, key) {
     sh.setFrozenRows(1);
     sh.setFrozenColumns(6);
     sh.hideColumns(1, 2);
+  } else {
+    const h = headers_(test);
+    const have = sh.getLastColumn();
+    if (have &lt; h.length) {
+      sh.getRange(1, have + 1, 1, h.length - have).setValues([h.slice(have)]).setFontWeight('bold').setWrap(true).setBackground('#DCEFEA');
+    }
   }
   return sh;
 }
@@ -714,18 +726,21 @@ function fmtDate_(d) {
   --ground:#EEF2F0; --surface:#FFFFFF; --ink:#1C2A3A; --muted:#5B6B78; --line:#D5DEDA;
   --accent:#0E7466; --accent-soft:#DCEFEA; --calc:#FFF3D6; --calc-ink:#7A4B00;
   --good:#1D7A3E; --mid:#A86A00; --low:#B3372B; --sample:#FCE9C8;
+  --m-err:#B3372B; --m-sc:#B07A10; --m-hes:#2C6E8F; --m-frag:#7B55A8; --m-skip:#8A9096;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --ground:#121A20; --surface:#1B252D; --ink:#E6EDF0; --muted:#98A8B3; --line:#2E3C46;
     --accent:#3CC1AA; --accent-soft:#17362F; --calc:#3A2F17; --calc-ink:#F5CF7A;
     --good:#5BCB82; --mid:#E2AA42; --low:#F07C6F; --sample:#3A2E18;
+    --m-err:#F07C6F; --m-sc:#E8B44A; --m-hes:#6FB7DA; --m-frag:#B89AE0; --m-skip:#8E979D;
   }
 }
 :root[data-theme="dark"]{
   --ground:#121A20; --surface:#1B252D; --ink:#E6EDF0; --muted:#98A8B3; --line:#2E3C46;
   --accent:#3CC1AA; --accent-soft:#17362F; --calc:#3A2F17; --calc-ink:#F5CF7A;
   --good:#5BCB82; --mid:#E2AA42; --low:#F07C6F; --sample:#3A2E18;
+  --m-err:#F07C6F; --m-sc:#E8B44A; --m-hes:#6FB7DA; --m-frag:#B89AE0; --m-skip:#8E979D;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -790,10 +805,19 @@ th{font-size:.8rem;color:var(--muted)}
 .w span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .w i{font-style:normal;font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .w.ok{background:var(--accent-soft)}
-.w.err{background:var(--low);border-color:var(--low);color:#fff}
-.w.err i{color:#fff}
-.w.sc{border:2px dashed var(--accent);background:var(--accent-soft)}
-.w.sc i{color:var(--accent);font-weight:700}
+.w.sc{}
+.w span{position:relative;padding:1px 4px}
+.w.m-err span{color:var(--m-err);border:2px solid var(--m-err);border-radius:999px}
+.w.m-sc span{color:var(--m-sc);border:2px solid var(--m-sc);border-radius:6px}
+.w.m-sc span::after{content:"★";position:absolute;top:-10px;inset-inline-end:-6px;font-size:.8rem;color:var(--m-sc)}
+.w.m-hes span{color:var(--m-hes);text-decoration:underline 3px var(--m-hes);text-underline-offset:4px}
+.w.m-frag span{color:var(--m-frag);text-decoration:underline dashed 3px var(--m-frag);text-underline-offset:4px}
+.w.m-skip span{color:var(--m-skip);text-decoration:line-through 2px var(--m-skip)}
+.w.m-err,.w.m-sc,.w.m-hes,.w.m-frag,.w.m-skip{background:var(--surface)}
+.w i.mk{font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;background:var(--ground);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:.88rem}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend b{display:inline-block;width:14px;height:14px;border-radius:4px}
 .w.last{outline:3px solid var(--ink);outline-offset:-1px}
 .w.after{opacity:.4}
 .wsum{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
@@ -862,7 +886,8 @@ th{font-size:.8rem;color:var(--muted)}
 
     &lt;section class="block" id="wordsBlock"&gt;
       &lt;h2 id="wTitle"&gt;קריאת מילים בודדות&lt;/h2&gt;
-      &lt;p class="hint" style="margin:0 0 10px"&gt;בוחרים מה מסמנים ומקישים על המילה: שגיאה, או תיקון עצמי (התלמיד טעה ותיקן לבד, נספר כקריאה נכונה). בסיום, "המילה האחרונה" והקשה על המילה שבה נעצרה הקריאה.&lt;/p&gt;
+      &lt;p class="hint" style="margin:0 0 8px"&gt;לחיצה על מילה מסמנת אותה, ולחיצה חוזרת עוברת לסימון הבא. בסיום בוחרים "המילה האחרונה" ומקישים על המילה שבה נעצרה הקריאה.&lt;/p&gt;
+      &lt;div class="legend" aria-label="מקרא הסימונים"&gt;&lt;span&gt;&lt;b style="border:2px solid var(--m-err);border-radius:999px"&gt;&lt;/b&gt;שגיאה&lt;/span&gt;&lt;span&gt;&lt;b style="border:2px solid var(--m-sc)"&gt;&lt;/b&gt;תיקון עצמי ★&lt;/span&gt;&lt;span&gt;&lt;b style="background:var(--m-hes)"&gt;&lt;/b&gt;היסוס/השתהות&lt;/span&gt;&lt;span&gt;&lt;b style="background:var(--m-frag)"&gt;&lt;/b&gt;קריאה מקוטעת&lt;/span&gt;&lt;span&gt;&lt;b style="background:var(--m-skip)"&gt;&lt;/b&gt;דילוג&lt;/span&gt;&lt;/div&gt;
       &lt;div class="wtools"&gt;
         &lt;div class="seg" id="wmode"&gt;&lt;/div&gt;
         &lt;button type="button" class="new-btn" id="timer"&gt;טיימר 45 שניות&lt;/button&gt;
@@ -930,34 +955,42 @@ function seg(el,opts,get,set){
 function accuracy(e){if(e===""||isNaN(e))return null;e=+e;return e&lt;=4?["בינוני-גבוה","lvl-good"]:e&lt;=9?["בינוני-נמוך","lvl-mid"]:["נמוך","lvl-low"]}
 function maxOf(t){return t.qs.reduce((a,q)=&gt;a+q[1],0)}
 
-function blank(testKey){return {id:null,test:testKey,scores:{},choice:{},extra:null,wordsList:{last:null,errs:[],sc:[]},letters:{},heard:{test:null,scores:{}}}}
+function blank(testKey){return {id:null,test:testKey,scores:{},choice:{},extra:null,wordsList:{last:null,errs:[],sc:[],hes:[],frag:[],skip:[]},letters:{},heard:{test:null,scores:{}}}}
 
-let wMode="שגיאה", timerId=null;
+const MARKS=[["errs","שגיאה","m-err","✗"],["sc","תיקון עצמי","m-sc","★"],["hes","היסוס/השתהות","m-hes","…"],["frag","קריאה מקוטעת","m-frag","⋯"],["skip","דילוג","m-skip","⤼"]];
+let wMode="סימון", timerId=null;
+function markOf(wl,i){ for(const m of MARKS){ if((wl[m[0]]||[]).includes(i)) return m; } return null; }
 function renderWords(){
-  const W=CFG.words, wl=state.wordsList||(state.wordsList={last:null,errs:[],sc:[]});
+  const W=CFG.words, wl=state.wordsList||(state.wordsList={last:null,errs:[],sc:[],hes:[],frag:[],skip:[]});
+  MARKS.forEach(m=&gt;{ if(!wl[m[0]]) wl[m[0]]=[]; });
   $("wTitle").textContent=W.title;
-  if(!wl.sc)wl.sc=[];
-  seg($("wmode"),["שגיאה","תיקון עצמי","המילה האחרונה"],()=&gt;wMode,v=&gt;{wMode=v||"שגיאה"});
+  seg($("wmode"),["סימון","המילה האחרונה"],()=&gt;wMode,v=&gt;{wMode=v||"סימון"});
   let n=0; const g=$("wgrid"); g.innerHTML="";
   W.columns.forEach(col=&gt;col.forEach(word=&gt;{
     const i=++n, b=document.createElement("button");
     b.type="button";
-    const err=wl.errs.includes(i), sc=wl.sc.includes(i), after=wl.last&amp;&amp;i&gt;wl.last;
-    b.className="w"+(err?" err":sc?" sc":wl.last&amp;&amp;!after?" ok":"")+(wl.last===i?" last":"")+(after?" after":"");
-    b.innerHTML=`&lt;span&gt;${esc(word)}&lt;/span&gt;&lt;i&gt;${err?"✗":sc?"↺":i}&lt;/i&gt;`;
-    b.setAttribute("aria-label",`${word}, מילה ${i}${err?", שגיאה":""}${sc?", תיקון עצמי":""}${wl.last===i?", המילה האחרונה":""}`);
+    const m=markOf(wl,i), after=wl.last&amp;&amp;i&gt;wl.last;
+    b.className="w"+(m?" "+m[2]:(wl.last&amp;&amp;!after?" ok":""))+(wl.last===i?" last":"")+(after?" after":"");
+    b.innerHTML=`&lt;span&gt;${esc(word)}&lt;/span&gt;&lt;i class="${m?"mk":""}"&gt;${m?m[3]:i}&lt;/i&gt;`;
+    b.setAttribute("aria-label",`${word}, מילה ${i}${m?", "+m[1]:""}${wl.last===i?", המילה האחרונה":""}`);
     b.onclick=()=&gt;{
-      if(wMode==="המילה האחרונה"){wl.last=wl.last===i?null:i;if(wl.last){wMode="שגיאה"}}
-      else if(wMode==="תיקון עצמי"){wl.sc=sc?wl.sc.filter(x=&gt;x!==i):wl.sc.concat(i);wl.errs=wl.errs.filter(x=&gt;x!==i)}
-      else{wl.errs=err?wl.errs.filter(x=&gt;x!==i):wl.errs.concat(i);wl.sc=wl.sc.filter(x=&gt;x!==i)}
+      if(wMode==="המילה האחרונה"){ wl.last=wl.last===i?null:i; if(wl.last) wMode="סימון"; }
+      else{
+        const idx=m?MARKS.indexOf(m):-1;
+        MARKS.forEach(x=&gt;{ wl[x[0]]=wl[x[0]].filter(y=&gt;y!==i); });
+        const next=MARKS[idx+1];
+        if(next) wl[next[0]].push(i);
+      }
       renderWords();
     };
     g.appendChild(b);
   }));
-  const errs=wl.last?wl.errs.filter(x=&gt;x&lt;=wl.last).length:wl.errs.length, scs=wl.last?wl.sc.filter(x=&gt;x&lt;=wl.last).length:wl.sc.length;
+  const cnt=k=&gt;(wl[k]||[]).filter(x=&gt;!wl.last||x&lt;=wl.last).length;
+  const wrong=cnt("errs")+cnt("skip");
+  const parts=MARKS.map(m=&gt;`&lt;div class="calc"&gt;${m[1]}: &lt;b&gt;${cnt(m[0])}&lt;/b&gt;&lt;/div&gt;`).join("");
   $("wsum").innerHTML=wl.last
-    ?`&lt;div class="calc"&gt;נקראו בסך הכול: &lt;b&gt;${wl.last}&lt;/b&gt;&lt;/div&gt;&lt;div class="calc"&gt;נקראו נכונה ב-${W.seconds} שניות: &lt;b&gt;${wl.last-errs}&lt;/b&gt;&lt;/div&gt;&lt;div class="calc"&gt;שגיאות: &lt;b&gt;${errs}&lt;/b&gt;&lt;/div&gt;&lt;div class="calc"&gt;תיקונים עצמיים: &lt;b&gt;${scs}&lt;/b&gt;&lt;/div&gt;`
-    :`&lt;div class="calc"&gt;סומנו: &lt;b&gt;${errs}&lt;/b&gt; שגיאות, &lt;b&gt;${scs}&lt;/b&gt; תיקונים עצמיים. הסיכום יחושב אחרי סימון המילה האחרונה.&lt;/div&gt;`;
+    ?`&lt;div class="calc"&gt;נקראו בסך הכול: &lt;b&gt;${wl.last}&lt;/b&gt;&lt;/div&gt;&lt;div class="calc"&gt;נקראו נכונה ב-${W.seconds} שניות: &lt;b&gt;${wl.last-wrong}&lt;/b&gt;&lt;/div&gt;`+parts
+    :parts+`&lt;div class="calc"&gt;הסיכום יחושב אחרי סימון המילה האחרונה.&lt;/div&gt;`;
   if(CFG.tests[state.test].words)update();
 }
 function toggleTimer(){
@@ -980,7 +1013,7 @@ function switchTest(k){
   if(!k||k===state.test)return true;
   if(hasMarks()&amp;&amp;!confirm("המעבר ימחק את מה שכבר סומן במבדק הנוכחי. להמשיך?"))return false;
   if(!CFG.tests[state.test].words)lastStory=state.test;
-  state.test=k;state.scores={};state.extra=null;state.wordsList={last:null,errs:[],sc:[]};state.letters={};state.heard={test:null,scores:{}};
+  state.test=k;state.scores={};state.extra=null;state.wordsList={last:null,errs:[],sc:[],hes:[],frag:[],skip:[]};state.letters={};state.heard={test:null,scores:{}};
   renderAllSegs();renderLetters();renderHeard();renderWords();renderQs();renderTexts();
   return true;
 }
@@ -1112,7 +1145,7 @@ function renderMore(){
   $("more").innerHTML=CFG.more.map(s=&gt;`&lt;section class="block" data-skipwords="${s.skipWords?1:0}"&gt;&lt;h2&gt;${esc(s.title)}&lt;/h2&gt;${s.items.map(i=&gt;`&lt;div class="item"&gt;${s.items.length&gt;1||i.label!==s.title?`&lt;div class="lbl"&gt;${esc(i.label)}&lt;/div&gt;`:""}${i.desc?`&lt;details&gt;&lt;summary&gt;מה בודקים?&lt;/summary&gt;&lt;p class="hint"&gt;${esc(i.desc)}&lt;/p&gt;&lt;/details&gt;`:""}&lt;div class="seg${i.stack?" stack":""}" data-key="${i.key}" data-opts="${esc(i.opts)}"&gt;&lt;/div&gt;&lt;/div&gt;`).join("")}&lt;/section&gt;`).join("");
 }
 function update(){
-  if(CFG.tests[state.test].words){const wl=state.wordsList;$("pills").innerHTML=wl.last?`&lt;span class="pill"&gt;נקראו ${wl.last}, נכונות ${wl.last-wl.errs.filter(x=&gt;x&lt;=wl.last).length}&lt;/span&gt;`:`&lt;span class="pill"&gt;טרם סומנה המילה האחרונה&lt;/span&gt;`;return}
+  if(CFG.tests[state.test].words){const wl=state.wordsList;$("pills").innerHTML=wl.last?`&lt;span class="pill"&gt;נקראו ${wl.last}, נכונות ${wl.last-wl.errs.filter(x=&gt;x&lt;=wl.last).length-(wl.skip||[]).filter(x=&gt;x&lt;=wl.last).length}&lt;/span&gt;`:`&lt;span class="pill"&gt;טרם סומנה המילה האחרונה&lt;/span&gt;`;return}
   const a=accuracy($("errors").value);$("acc").textContent=a?a[0]:"-";$("acc").className="calc "+(a?a[1]:"");
   const w=+$("words").value,s=+$("secs").value;$("wpm").textContent=w&amp;&amp;s?Math.round(w/s*60):"-";
   $("tot").textContent=Object.values(state.scores).reduce((x,y)=&gt;x+y,0);
@@ -1129,9 +1162,9 @@ function fill(e){
   if(e.date)$("date").value=e.date;else $("date").valueAsDate=new Date();
   $("editing").hidden=!e.id;
   if(e.id)$("editing").textContent=`עריכת הזנה קיימת: תלמיד ${e.sid}, כיתה ${e.cls}. השמירה תעדכן את אותה שורה בגיליון.`;
-  if(!state.wordsList)state.wordsList={last:null,errs:[],sc:[]};
+  if(!state.wordsList)state.wordsList={last:null,errs:[],sc:[],hes:[],frag:[],skip:[]};
   if(!state.letters)state.letters={};
-  wMode="שגיאה";
+  wMode="סימון";
   renderTest();renderQs();renderAllSegs();renderWords();renderLetters();renderHeard();update();
 }
 function newForm(){
