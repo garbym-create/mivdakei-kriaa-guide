@@ -1815,6 +1815,8 @@ function onOpen() {
     .addItem('1. הכנת הקובץ (פעם אחת)', 'msSetup')
     .addItem('2. עדכון מהמקור', 'msSync')
     .addItem('3. שליחת הנתונים במייל', 'msSendEmails')
+    .addSeparator()
+    .addItem('שחזור נוסחאות מחושבות (אם נמחקו)', 'msRestore')
     .addToUi();
 }
 
@@ -2158,6 +2160,7 @@ function msLatest_() {
 function msSync() {
   const ui = SpreadsheetApp.getUi();
   try {
+    if (msFormulasMissing_()) msRestoreFormulas_();
     const got = msLatest_();
     const t = msBuildTables_(got.latest);
     msWrite_(MS_SHEET_TEXT, t.text, 24);
@@ -2198,6 +2201,71 @@ function msSendEmails() {
     ui.alert('השליחה הסתיימה', 'נשלחו ' + sent + ' מיילים.' + (failed.length ? '\n\nלא נשלחו:\n' + failed.join('\n') : ''), ui.ButtonSet.OK);
   } catch (e) {
     ui.alert('השליחה לא הושלמה', String(e.message || e), ui.ButtonSet.OK);
+  }
+}
+
+/* ---------------- שחזור נוסחאות מחושבות ---------------- */
+
+// נוסחאות העמודות המחושבות בשורה 6 של שני גיליונות ההזנה. שאר השורות מועתקות מהן
+const MS_FORMULAS = {
+ "הזנה ב-ו": {
+  "Y": "=IF($C6=\"\",\"\",IF(COUNTA($I6:$K6)&lt;3,\"— חסרים נתונים\",IF(AND($I6=\"תקין\",$J6=\"תקין\",$K6=\"תקין\"),\"רהוטה\",IF(AND($I6=\"תקין\",$J6=\"תקין\"),\"מדויקת ורציפה\",\"אינה מדויקת או מקוטעת\"))))",
+  "Z": "=IF($C6=\"\",\"\",IF(COUNTA($U6:$W6)&lt;3,\"\",IF(AND($U6=\"מפותח\",$V6=\"מפותח\",$W6=\"מפותחת\"),\"מפותחת\",IF((--($U6=\"דל\"))+(--($V6=\"אינו מפותח\"))+(--($W6=\"דלה\"))&gt;=2,\"אינה מפותחת\",\"חלקית\"))))",
+  "AA": "=IF($C6=\"\",\"\",IF(COUNTA($M6,$N6,$O6)&lt;3,\"— חסרים נתונים\",IF(OR($M6=\"נמוכה\",(--($M6&lt;&gt;\"תקינה\"))+(--($N6&lt;&gt;\"תקין\"))+(--($O6&lt;&gt;\"תקינה\"))&gt;=2),\"ניכרת\",\"אינה ניכרת\")))",
+  "AB": "=IF(OR($C6=\"\",$Y6=\"\",$AA6=\"\",LEFT($Y6,1)=\"—\",LEFT($AA6,1)=\"—\"),\"\",IF($Z6=\"\",\"— נדרשת הערכת כתיבה\",IF($L6=\"\",\"— חסרה הבנת הנקרא\",IF($Y6=\"אינה מדויקת או מקוטעת\",IF($AA6=\"ניכרת\",\"מיקוד בשטף הקריאה ובכישורי שפה\",\"מיקוד בשטף קריאה\"),IF($AA6=\"ניכרת\",\"מיקוד בכישורי שפה\",IF(AND($L6=\"תקינה\",$Z6=\"מפותחת\"),\"קוראים וכותבים מיומנים\",\"מיקוד בהבנה והבעה\"))))))",
+  "AC": "=IF(OR($AB6=\"\",LEFT($AB6,1)=\"—\"),\"\",IF(OR($AB6=\"מיקוד בשטף קריאה\",$AB6=\"מיקוד בשטף הקריאה ובכישורי שפה\"),\"רמה א'\",IF($AB6=\"קוראים וכותבים מיומנים\",\"רמה ג'\",\"רמה ב'\")))",
+  "AD": "=IF($AC6=\"\",\"\",MID(IF(AND($AC6=\"רמה א'\",$AA6=\"ניכרת\"),\"; להוסיף עבודת אוצר מילים\",\"\")&amp;IF($Z6=\"אינה מפותחת\",\"; דגש על הבעה בכתב\",\"\")&amp;IF($K6&lt;&gt;\"תקין\",\"; נדרש לעבוד על ההנגנה\",\"\")&amp;IF($AK6&lt;&gt;\"\",\"; \"&amp;$AK6,\"\"),3,400))",
+  "AE": "=IF($F6=\"\",\"\",IF($F6=\"תחילת שנה\",1,IF($F6=\"מחצית שנה\",2,3)))",
+  "AF": "=IF(OR($B6=\"\",$AC6=\"\",$A6=\"\",$F6=\"\"),\"\",$B6&amp;\"|\"&amp;$A6&amp;\"|\"&amp;$F6&amp;\"|\"&amp;$AC6&amp;\"|\"&amp;COUNTIFS($B$6:$B6,$B6,$A$6:$A6,$A6,$F$6:$F6,$F6,$AC$6:$AC6,$AC6))",
+  "AG": "=IF($C6=\"\",\"\",$C6&amp;\"|\"&amp;COUNTIFS($C$6:$C6,$C6))",
+  "AH": "=IF(OR($C6=\"\",$A6=\"\",$AE6=\"\"),\"\",$C6&amp;\"|\"&amp;$A6&amp;\"|\"&amp;$AE6)",
+  "AI": "=IF(OR($C6=\"\",$AE6=\"\",$AE6=1),\"\",IFERROR(INDEX($AC$6:$AC$1505,MATCH($C6&amp;\"|\"&amp;$A6&amp;\"|\"&amp;($AE6-1),$AH$6:$AH$1505,0)),\"\"))",
+  "AJ": "=IF(OR($AI6=\"\",$AC6=\"\"),\"\",IF($AI6=$AC6,\"ללא שינוי\",\"מ-\"&amp;$AI6&amp;\" ל-\"&amp;$AC6))"
+ },
+ "הזנה רכישה": {
+  "Q": "=IF($C6=\"\",\"\",IF($J6=\"\",\"— חסרים נתונים\",IF($J6=\"טרם מפענח\",\"פרופיל 5\",IF($J6=\"קמץ/פתח/חטף-פתח ושוואים\",\"פרופיל 4\",IF($J6=\"2-3 סימני ניקוד\",\"פרופיל 3\",IF($J6=\"4-5 סימני ניקוד\",\"פרופיל 2\",IF(AND($O6=\"משפטים וקטעים קצרים\",OR($M6=\"מבין\",$M6=\"מבין לרוב\")),\"פרופיל 1\",\"פרופיל 2\")))))))",
+  "R": "=IF($C6=\"\",\"\",IF(OR($Q6=\"\",LEFT($Q6,1)=\"—\"),\"קבוצה רביעית\",IF($Q6=\"פרופיל 5\",\"קבוצת תשתיות\",IF(OR($Q6=\"פרופיל 4\",$Q6=\"פרופיל 3\"),\"קבוצת רכישה\",\"קבוצת ביסוס\"))))",
+  "S": "=IF($F6=\"\",\"\",IF($F6=\"תחילת שנה\",1,IF($F6=\"מחצית שנה\",2,3)))",
+  "T": "=IF(OR($B6=\"\",$R6=\"\",$A6=\"\",$F6=\"\"),\"\",$B6&amp;\"|\"&amp;$A6&amp;\"|\"&amp;$F6&amp;\"|\"&amp;$R6&amp;\"|\"&amp;COUNTIFS($B$6:$B6,$B6,$A$6:$A6,$A6,$F$6:$F6,$F6,$R$6:$R6,$R6))",
+  "U": "=IF($C6=\"\",\"\",$C6&amp;\"|\"&amp;COUNTIFS($C$6:$C6,$C6))",
+  "V": "=IF(OR($C6=\"\",$A6=\"\",$S6=\"\"),\"\",$C6&amp;\"|\"&amp;$A6&amp;\"|\"&amp;$S6)",
+  "W": "=IF(OR($C6=\"\",$S6=\"\",$S6=1),\"\",IFERROR(INDEX($Q$6:$Q$1505,MATCH($C6&amp;\"|\"&amp;$A6&amp;\"|\"&amp;($S6-1),$V$6:$V$1505,0)),\"\"))",
+  "X": "=IF(OR($W6=\"\",$Q6=\"\",LEFT($Q6,1)=\"—\"),\"\",IF($W6=$Q6,\"ללא שינוי\",\"מ-\"&amp;$W6&amp;\" ל-\"&amp;$Q6))"
+ }
+};
+
+/** כותב מחדש את העמודות המחושבות, אם נמחקו (למשל כשסימנו יותר מדי עמודות ומחקו) */
+function msRestoreFormulas_() {
+  const ss = SpreadsheetApp.getActive();
+  Object.keys(MS_FORMULAS).forEach(name =&gt; {
+    const sh = ss.getSheetByName(name);
+    if (!sh) throw new Error('חסרה לשונית "' + name + '".');
+    const cols = MS_FORMULAS[name];
+    const letters = Object.keys(cols);
+    letters.forEach(L =&gt; sh.getRange(L + MS_FIRST_ROW).setFormula(cols[L]));
+    const first = sh.getRange(letters[0] + MS_FIRST_ROW + ':' + letters[letters.length - 1] + MS_FIRST_ROW);
+    const rows = sh.getMaxRows() - MS_FIRST_ROW;
+    if (rows &gt; 0) first.copyTo(sh.getRange(letters[0] + (MS_FIRST_ROW + 1) + ':' + letters[letters.length - 1] + sh.getMaxRows()));
+  });
+}
+
+/** האם הנוסחאות המחושבות חסרות. בודקים את התא הראשון של כל גיליון */
+function msFormulasMissing_() {
+  const ss = SpreadsheetApp.getActive();
+  const t = ss.getSheetByName(MS_SHEET_TEXT), a = ss.getSheetByName(MS_SHEET_ACQ);
+  return !t || !a || t.getRange('Y' + MS_FIRST_ROW).getFormula() === '' || t.getRange('AC' + MS_FIRST_ROW).getFormula() === '' ||
+    a.getRange('Q' + MS_FIRST_ROW).getFormula() === '' || a.getRange('R' + MS_FIRST_ROW).getFormula() === '';
+}
+
+function msRestore() {
+  const ui = SpreadsheetApp.getUi();
+  try {
+    msRestoreFormulas_();
+    msEnsureEmotionalColumn_();
+    SpreadsheetApp.flush();
+    ui.alert('שחזור נוסחאות', 'העמודות המחושבות נכתבו מחדש בשני גיליונות ההזנה. כדאי להריץ עכשיו "עדכון מהמקור".', ui.ButtonSet.OK);
+  } catch (e) {
+    ui.alert('השחזור לא הושלם', String(e.message || e), ui.ButtonSet.OK);
   }
 }
 </textarea>
