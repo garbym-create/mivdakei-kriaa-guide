@@ -2034,13 +2034,14 @@ function msEnsureEmotionalViews_(last) {
 function msEsc_(s) { return String(s).replace(/[&amp;&lt;&gt;"]/g, c =&gt; ({ '&amp;': '&amp;amp;', '&lt;': '&amp;lt;', '&gt;': '&amp;gt;', '"': '&amp;quot;' }[c])); }
 
 /** מסכם כיתה אחת בפעימה האחרונה של שנת הלימודים האחרונה. recs: הרשומות העדכניות שבתחום (למורה: רק שלה) */
-function msClassReport_(recs, cls) {
+function msClassReport_(recs, cls, wantPulse) {
   const mine = recs.filter(r =&gt; r.cls === cls);
   if (!mine.length) return null;
   const lastDate = mine.reduce((m, r) =&gt; Math.max(m, msDateKey_(r.date)), 0);
   const yearRec = mine.find(r =&gt; msDateKey_(r.date) === lastDate) || mine[0];
   const inYear = mine.filter(r =&gt; r.year === yearRec.year);
-  const maxPulse = inYear.reduce((m, r) =&gt; Math.max(m, MS_PULSES.indexOf(r.pulse)), 0);
+  let maxPulse = inYear.reduce((m, r) =&gt; Math.max(m, MS_PULSES.indexOf(r.pulse)), 0);
+  if (wantPulse &amp;&amp; inYear.some(r =&gt; r.pulse === wantPulse)) maxPulse = MS_PULSES.indexOf(wantPulse);
   const pulse = MS_PULSES[maxPulse];
   const cur = inYear.filter(r =&gt; r.pulse === pulse);
   const prevPulse = maxPulse &gt; 0 ? MS_PULSES[maxPulse - 1] : null;
