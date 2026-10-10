@@ -2008,6 +2008,22 @@ function msEnsureEmotionalViews_(last) {
     school.getRange(8, 21, 31, 1).copyTo(school.getRange(8, 22, 31, 1), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
     school.getRange(7, 22).setValue('עם קשיים רגשיים/התנהגותיים');
     school.setColumnWidth(22, 140);
+    // לפי רמה: עמודות W, X, Y
+    ["רמה א'", "רמה ב'", "רמה ג'"].forEach((lvl, i) =&gt; {
+      const c = 23 + i;
+      const f = [];
+      for (let r = 8; r &lt;= 37; r++) {
+        f.push(['=IF($A' + r + '="","",SUMPRODUCT((' + q + '$B$6:$B$' + last + '=$A' + r + ')*(' + q + '$A$6:$A$' + last + '=$B$4)*(' +
+          q + '$F$6:$F$' + last + '=$D$4)*(' + q + '$AC$6:$AC$' + last + '="' + lvl + '")*(LEN(' + q + '$AK$6:$AK$' + last + ')&gt;0)))']);
+      }
+      school.getRange(8, c, 30, 1).setFormulas(f);
+      const colLetter = String.fromCharCode(64 + c);
+      school.getRange(38, c).setFormula('=SUM(' + colLetter + '8:' + colLetter + '37)');
+      school.getRange(7, 21).copyTo(school.getRange(7, c), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
+      school.getRange(8, 21, 31, 1).copyTo(school.getRange(8, c, 31, 1), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
+      school.getRange(7, c).setValue('רגשי ב' + lvl);
+      school.setColumnWidth(c, 100);
+    });
   }
 }
 
