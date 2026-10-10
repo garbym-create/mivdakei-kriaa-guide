@@ -107,6 +107,8 @@ a.wa svg{width:20px;height:20px;fill:currentColor}
     <li><a href="#s5">פרסום האפליקציה</a></li>
     <li><a href="#s6">בדיקה</a></li>
     <li><a href="#s7">שימוש שוטף</a></li>
+    <li><a href="#s9">מיפוי אורייני</a></li>
+    <li><a href="#teachers">הסבר למורות</a></li>
     <li><a href="#s8">אבטחה ופרטיות</a></li>
     <li><a href="#ideas">רעיונות לכלים נוספים</a></li>
   </ol>
@@ -149,13 +151,35 @@ const TESTS = {
 
 /** טקסטים לשטף קריאה: שם ומספר מילים */
 const FLUENCY_TEXTS = [
-  { name: 'אגדת הירדן', words: 264, nikud: 'אינו מנוקד' },
-  { name: 'הנחשים והקיפוד', words: 145, nikud: 'מנוקד' }
+  { name: 'אגדת הירדן', words: 264, nikud: 'אינו מנוקד', level: 'כיתה ו' },
+  { name: 'הנחשים והקיפוד', words: 145, nikud: 'מנוקד', level: 'כיתה ג' }
 ];
+
+/** פעימות המיפוי ורמות הטקסט */
+const PULSES = 'תחילת שנה|מחצית שנה|סוף השנה';
+const TEXT_LEVELS = 'כיתה ב|כיתה ג|כיתה ד|כיתה ה|כיתה ו';
+
+/** כתיבה (מתוך טופס "פרופיל אורייני אישי"): רק ההבעה בכתב משפיעה על שיוך הפרופיל, הכתב והכתיב מתועדים */
+const WRITING = {
+  title: 'כתיבה',
+  groups: {
+    reg: { title: 'מערכת הרישום: כתב וכתיב', note: 'מתועד ומכוון הוראה, ואינו משנה את הפרופיל' },
+    expr: { title: 'הבעה בכתב: שיח כתוב', note: 'זה האשכול שמשפיע על שיוך הפרופיל' }
+  },
+  items: [
+    { key: 'wgenre', label: 'הסוגה שנבדקה', opts: 'מאפיינים סיפוריים|מאפיינים מידעיים|מאפיינים רפלקטיביים' },
+    { key: 'whand', group: 'reg', label: 'כתב', opts: 'קריא ומאורגן על הדף|קריא חלקית, ארגון לא עקבי|אינו קריא' },
+    { key: 'wspell', group: 'reg', label: 'כתיב', opts: 'תקין: שגיאות בודדות|חלקי: שגיאות חוזרות בהומופונים ובאותיות השורש|לא מבוסס: שגיאות רבות' },
+    { key: 'wcont', group: 'expr', label: 'תוכן', opts: 'מפותח: רעיונות אחדים ומפותחים|חלקי: רעיון מרכזי ללא פיתוח|דל: מעט רעיונות או חוסר רלוונטיות' },
+    { key: 'worg', group: 'expr', label: 'ארגון ולכידות', opts: 'מפותח: מבנה ברור, פסקאות, קישור|חלקי: רצף חלקי, קישוריות מועטה|אינו מפותח: ללא מבנה מזוהה' },
+    { key: 'wlang', group: 'expr', label: 'לשון', opts: 'מפותחת: משלב הולם, אוצר עשיר|חלקית: משלב דבור, אוצר בסיסי|דלה: אוצר מצומצם, מבנים שגויים' },
+    { key: 'wattitude', label: 'עמדה כלפי כתיבה', opts: 'כותב ברצון|כותב בהיסוס|נמנע מכתיבה' }
+  ]
+};
 
 const FLUENCY = [
   ['nikud','ניקוד','מנוקד|אינו מנוקד'],
-  ['mode','אופן הקריאה','גלובלית ברובה|מקוטעת ברובה'],
+  ['mode','אופן הקריאה','גלובלית ברובה|מקוטעת ברובה|מצרף'],
   ['pace','הערכה התרשמותית מקצב הקריאה','נמוך|בינוני|גבוה'],
   ['prosody','פרוזודיה','נמוכה|בינונית|גבוהה'],
   ['comp','מידת ההבנה','גבוהה|בינונית|נמוכה']
@@ -405,6 +429,9 @@ function sanitizeEntry_(raw) {
   const ch = e.choice || {};
   FLUENCY.forEach(f =&gt; { const v = oneOf_(ch[f[0]], f[2]); if (v) out.choice[f[0]] = v; });
   moreItems_().forEach(it =&gt; { const v = oneOf_(ch[it.key], it.opts); if (v) out.choice[it.key] = v; });
+  const pv = oneOf_(ch.pulse, PULSES); if (pv) out.choice.pulse = pv;
+  const tl = oneOf_(ch.textLevel, TEXT_LEVELS); if (tl) out.choice.textLevel = tl;
+  WRITING.items.forEach(it =&gt; { const v = oneOf_(ch[it.key], it.opts); if (v) out.choice[it.key] = v; });
 
   const cleanScores = (t, src) =&gt; {
     const res = {};
@@ -604,7 +631,7 @@ function getInit() {
   const email = userEmail_();
   if (!isAllowed_(email)) return { denied: true, email: email };
   const classes = classRows_().filter(c =&gt; c.id).map(c =&gt; c.cls);
-  return { email: userEmail_(), classes: classes, tests: TESTS, fluency: FLUENCY, texts: FLUENCY_TEXTS, more: MORE, words: WORDS, letters: LETTERS };
+  return { email: userEmail_(), classes: classes, tests: TESTS, fluency: FLUENCY, texts: FLUENCY_TEXTS, more: MORE, words: WORDS, letters: LETTERS, writing: WRITING };
 }
 
 function saveEntry_(raw) {
@@ -701,6 +728,7 @@ function getEntry_(cls, testKey, id) {
       const p = pair.split(':');
       e.heard.scores[p[0]] = Number(p[1]);
     });
+    if (v[c + 22]) e.choice.pulse = v[c + 22];
     return e;
   }
   e.txt = v[6]; e.words = v[8]; e.errors = v[9]; e.secs = v[11];
@@ -709,6 +737,16 @@ function getEntry_(cls, testKey, id) {
   moreItems_().forEach(it =&gt; { if (v[c] !== '') e.choice[it.key] = v[c]; c++; });
   test.qs.forEach(q =&gt; { if (v[c] !== '') e.scores[q[0]] = Number(v[c]); c++; });
   if (test.extra) { e.extra = v[c] === '' ? null : String(v[c]); c++; }
+  const a = c + 2; // אחרי "סה"כ בשאלות" ו"ניקוד מרבי"
+  if (v[a]) e.choice.pulse = v[a];
+  if (v[a + 2]) e.choice.textLevel = v[a + 2];
+  e.heard = { test: null, scores: {} };
+  Object.keys(TESTS).forEach(k =&gt; { if (TESTS[k].name === v[a + 3]) e.heard.test = k; });
+  String(v[a + 6] || '').split(' ').filter(String).forEach(pair =&gt; {
+    const q = pair.split(':');
+    e.heard.scores[q[0]] = Number(q[1]);
+  });
+  WRITING.items.forEach((it, i) =&gt; { if (v[a + 7 + i]) e.choice[it.key] = v[a + 7 + i]; });
   return e;
 }
 
@@ -724,17 +762,57 @@ function headers_(test) {
     h.push('אופן הקריאה', 'הערכה התרשמותית מקצב');
     moreItems_(test).forEach(it =&gt; h.push(it.label));
     return h.concat(['נקראו בסך הכול (כולל שגיאות)', 'נקראו נכונה ב-' + WORDS.seconds + ' שניות', 'שגיאות', 'המילים השגויות', 'המילה האחרונה (מספר)', 'שגויות (מספרים)', 'תיקונים עצמיים', 'המילים שתוקנו', 'תוקנו (מספרים)', 'הבנת הנשמע: המבדק', 'הבנת הנשמע: סה"כ', 'הבנת הנשמע: מתוך', 'הבנת הנשמע: פירוט',
-      'דילוגים', 'המילים שדולגו', 'היסוסים', 'המילים בהיסוס', 'קריאה מקוטעת', 'המילים המקוטעות', 'דילוגים (מספרים)', 'היסוסים (מספרים)', 'מקוטעות (מספרים)']);
+      'דילוגים', 'המילים שדולגו', 'היסוסים', 'המילים בהיסוס', 'קריאה מקוטעת', 'המילים המקוטעות', 'דילוגים (מספרים)', 'היסוסים (מספרים)', 'מקוטעות (מספרים)', 'פעימה', 'שנת לימודים']);
   }
   const h = base.concat(['שם הטקסט','סוג הטקסט','מספר המילים','מספר השגיאות','דיוק','זמן קריאה (שניות)','מילים בדקה',
     'אופן הקריאה','הערכה התרשמותית מקצב','פרוזודיה','מידת ההבנה (שאלת ניטור)']);
   moreItems_().forEach(it =&gt; h.push(it.label));
   test.qs.forEach(q =&gt; h.push('שאלה ' + q[0] + ' (מתוך ' + q[1] + ')'));
   if (test.extra) h.push(test.extra.label);
-  return h.concat(['סה"כ בשאלות', 'ניקוד מרבי']);
+  return h.concat(['סה"כ בשאלות', 'ניקוד מרבי'], extraTextHeaders_());
 }
 
 const FLU_COLS = 17, MORE_START = 17;
+
+/** שנת לימודים לפי תאריך: מספטמבר מתחילה השנה העברית הבאה (2026-09 היא תשפ"ז) */
+function schoolYear_(dateStr) {
+  const m = /^(\d{4})-(\d{2})/.exec(String(dateStr || ''));
+  if (!m) return '';
+  let n = Number(m[1]) + (Number(m[2]) &gt;= 9 ? 1 : 0) + 3760 - 5000;
+  const tens = ['', 'י', 'כ', 'ל', 'מ', 'נ', 'ס', 'ע', 'פ', 'צ'], ones = ['', 'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט'];
+  let s = '';
+  while (n &gt;= 400) { s += 'ת'; n -= 400; }
+  if (n &gt;= 100) { s += ['', 'ק', 'ר', 'ש'][Math.floor(n / 100)]; n %= 100; }
+  if (n === 15) s += 'טו'; else if (n === 16) s += 'טז'; else s += tens[Math.floor(n / 10)] + ones[n % 10];
+  const fin = { 'כ': 'ך', 'מ': 'ם', 'נ': 'ן', 'פ': 'ף', 'צ': 'ץ' };
+  const last = fin[s.slice(-1)] || s.slice(-1);
+  return s.length &gt; 1 ? s.slice(0, -1) + '"' + last : s + "'";
+}
+
+function heardCols_(e) {
+  const hd = e.heard || {};
+  const hTest = TESTS[hd.test];
+  let tot = 0, max = 0; const detail = [];
+  if (hTest) {
+    hTest.qs.forEach(q =&gt; {
+      const v = hd.scores &amp;&amp; hd.scores[q[0]];
+      max += q[1];
+      if (v !== undefined &amp;&amp; v !== null &amp;&amp; v !== '') { tot += Number(v); detail.push(q[0] + ':' + v); }
+    });
+  }
+  return [hTest ? hTest.name : '', hTest ? tot : '', hTest ? max : '', detail.join(' ')];
+}
+
+/** עמודות שנוספות בסוף לשונית מבדק טקסט: מוסיפים בסוף כדי שהזנות קיימות לא ייפגעו */
+function extraTextHeaders_() {
+  return ['פעימה', 'שנת לימודים', 'רמת הטקסט', 'הבנת הנשמע: המבדק', 'הבנת הנשמע: סה"כ', 'הבנת הנשמע: מתוך', 'הבנת הנשמע: פירוט']
+    .concat(WRITING.items.map(it =&gt; 'כתיבה: ' + it.label));
+}
+
+function textExtraCols_(e, ch, known) {
+  return [ch.pulse || '', schoolYear_(e.date), ch.textLevel || (known ? known.level : '')]
+    .concat(heardCols_(e), WRITING.items.map(it =&gt; ch[it.key] || ''));
+}
 
 function moreItems_(test) {
   return MORE.filter(s =&gt; !(test &amp;&amp; test.words &amp;&amp; s.skipWords)).reduce((a, s) =&gt; a.concat(s.items), []);
@@ -793,7 +871,7 @@ function buildRow_(e, test, email) {
     }
     return row.concat([last, last - errs.length - skip.length, errs.length, errs.map(i =&gt; flat[i - 1]).join(', '), last, errs.join(','), sc.length, sc.map(i =&gt; flat[i - 1]).join(', '), sc.join(','),
       hTest ? hTest.name : '', hTest ? hTot : '', hTest ? hMax : '', detail.join(' '),
-      skip.length, skip.map(i =&gt; flat[i - 1]).join(', '), hes.length, hes.map(i =&gt; flat[i - 1]).join(', '), frag.length, frag.map(i =&gt; flat[i - 1]).join(', '), skip.join(','), hes.join(','), frag.join(',')]);
+      skip.length, skip.map(i =&gt; flat[i - 1]).join(', '), hes.length, hes.map(i =&gt; flat[i - 1]).join(', '), frag.length, frag.map(i =&gt; flat[i - 1]).join(', '), skip.join(','), hes.join(','), frag.join(','), ch.pulse || '', schoolYear_(e.date)]);
   }
 
   const row = head.concat([e.txt || '', nikud, words, errors, acc, secs, wpm,
@@ -809,7 +887,7 @@ function buildRow_(e, test, email) {
     max += q[1];
   });
   if (test.extra) row.push(e.extra || '');
-  return row.concat([total, max]);
+  return row.concat([total, max], textExtraCols_(e, ch, known));
 }
 
 function sheetFor_(ss, key) {
@@ -996,6 +1074,8 @@ th{font-size:.8rem;color:var(--muted)}
 .asp[data-v="err"]{background:var(--low);border-color:var(--low);color:#fff}
 .ltools{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px}
 .lsum{font-size:.85rem;color:var(--muted)}
+.wsub{font:400 1rem "Secular One",sans-serif;margin:16px 0 4px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.wsub small{font:400 .8rem "Assistant",sans-serif;color:var(--muted)}
 #timer.run{background:var(--ink);color:var(--surface)}
 &lt;/style&gt;
 &lt;/head&gt;
@@ -1019,6 +1099,8 @@ th{font-size:.8rem;color:var(--muted)}
         &lt;div class="field"&gt;&lt;label for="cls"&gt;כיתה&lt;/label&gt;&lt;select id="cls"&gt;&lt;/select&gt;&lt;/div&gt;
         &lt;div class="field"&gt;&lt;label for="sid"&gt;מספר תלמיד&lt;/label&gt;&lt;input id="sid" type="number" inputmode="numeric" min="1"&gt;&lt;/div&gt;
         &lt;div class="field"&gt;&lt;label for="date"&gt;תאריך&lt;/label&gt;&lt;input id="date" type="date"&gt;&lt;/div&gt;
+        &lt;div class="field"&gt;&lt;span class="lbl"&gt;שנת לימודים&lt;/span&gt;&lt;div class="calc" id="schoolYear"&gt;-&lt;/div&gt;&lt;span class="hint"&gt;נקבעת לפי התאריך&lt;/span&gt;&lt;/div&gt;
+        &lt;div class="field wide"&gt;&lt;span class="lbl"&gt;פעימה&lt;/span&gt;&lt;div class="seg" data-key="pulse" data-opts="תחילת שנה|מחצית שנה|סוף השנה"&gt;&lt;/div&gt;&lt;/div&gt;
       &lt;/div&gt;
     &lt;/section&gt;
 
@@ -1034,11 +1116,12 @@ th{font-size:.8rem;color:var(--muted)}
         &lt;/div&gt;
         &lt;div class="field"&gt;&lt;label for="words"&gt;מספר המילים&lt;/label&gt;&lt;input id="words" type="number" inputmode="numeric" min="0" readonly&gt;&lt;span class="hint"&gt;נקבע לפי הטקסט&lt;/span&gt;&lt;/div&gt;
         &lt;div class="field wide"&gt;&lt;span class="lbl"&gt;סוג הטקסט&lt;/span&gt;&lt;div class="seg" data-key="nikud" data-opts="מנוקד|אינו מנוקד"&gt;&lt;/div&gt;&lt;/div&gt;
+        &lt;div class="field wide"&gt;&lt;span class="lbl"&gt;רמת הטקסט&lt;/span&gt;&lt;div class="seg" data-key="textLevel" data-opts="כיתה ב|כיתה ג|כיתה ד|כיתה ה|כיתה ו"&gt;&lt;/div&gt;&lt;span class="hint"&gt;בטקסטים הקבועים נקבעת לבד&lt;/span&gt;&lt;/div&gt;
         &lt;div class="field"&gt;&lt;label for="errors"&gt;מספר השגיאות&lt;/label&gt;&lt;input id="errors" type="number" inputmode="numeric" min="0"&gt;&lt;/div&gt;
         &lt;div class="field"&gt;&lt;span class="lbl"&gt;דיוק&lt;/span&gt;&lt;div class="calc" id="acc"&gt;-&lt;/div&gt;&lt;span class="hint"&gt;מחושב לפי מספר השגיאות&lt;/span&gt;&lt;/div&gt;
         &lt;div class="field"&gt;&lt;label for="secs"&gt;זמן קריאה בשניות&lt;/label&gt;&lt;input id="secs" type="number" inputmode="numeric" min="0"&gt;&lt;/div&gt;
         &lt;div class="field"&gt;&lt;span class="lbl"&gt;מילים בדקה&lt;/span&gt;&lt;div class="calc" id="wpm"&gt;-&lt;/div&gt;&lt;span class="hint"&gt;מחושב אוטומטית&lt;/span&gt;&lt;/div&gt;
-        &lt;div class="field wide"&gt;&lt;span class="lbl"&gt;אופן הקריאה&lt;/span&gt;&lt;div class="seg" data-key="mode" data-opts="גלובלית ברובה|מקוטעת ברובה"&gt;&lt;/div&gt;&lt;/div&gt;
+        &lt;div class="field wide"&gt;&lt;span class="lbl"&gt;אופן הקריאה&lt;/span&gt;&lt;div class="seg" data-key="mode" data-opts="גלובלית ברובה|מקוטעת ברובה|מצרף"&gt;&lt;/div&gt;&lt;/div&gt;
         &lt;div class="field wide"&gt;&lt;span class="lbl"&gt;הערכה התרשמותית מקצב הקריאה&lt;/span&gt;&lt;div class="seg" data-key="pace" data-opts="נמוך|בינוני|גבוה"&gt;&lt;/div&gt;&lt;/div&gt;
         &lt;div class="field wide"&gt;&lt;span class="lbl"&gt;פרוזודיה&lt;/span&gt;&lt;span class="hint"&gt;הנגנה בהתאם לתוכן ולתחביר&lt;/span&gt;&lt;div class="seg" data-key="prosody" data-opts="נמוכה|בינונית|גבוהה"&gt;&lt;/div&gt;&lt;/div&gt;
         &lt;div class="field wide"&gt;&lt;span class="lbl"&gt;מידת ההבנה בשאלת הניטור&lt;/span&gt;&lt;div class="seg" data-key="comp" data-opts="גבוהה|בינונית|נמוכה"&gt;&lt;/div&gt;&lt;div class="desc" id="compDesc"&gt;&lt;/div&gt;&lt;/div&gt;
@@ -1077,6 +1160,11 @@ th{font-size:.8rem;color:var(--muted)}
       &lt;h3 id="heardTitle" style="font:400 1rem 'Secular One',sans-serif;margin:14px 0 4px"&gt;&lt;/h3&gt;
       &lt;div id="heardQuestions"&gt;&lt;/div&gt;
       &lt;div class="wsum" id="heardSum"&gt;&lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;section class="block" id="writingBlock"&gt;
+      &lt;h2&gt;כתיבה&lt;/h2&gt;
+      &lt;div id="writingItems"&gt;&lt;/div&gt;
     &lt;/section&gt;
 
     &lt;div id="more"&gt;&lt;/div&gt;
@@ -1188,7 +1276,7 @@ function renderQs(){
   const t=CFG.tests[state.test],box=$("questions");box.innerHTML="";
   const isW=!!t.words;
   document.querySelectorAll('#more [data-skipwords="1"]').forEach(el=&gt;el.hidden=isW);
-  $("wordsBlock").hidden=!isW;$("lettersBlock").hidden=!isW;$("heardBlock").hidden=!isW;$("qBlock").hidden=isW;$("totalBox").hidden=isW;
+  $("wordsBlock").hidden=!isW;$("lettersBlock").hidden=!isW;$("heardBlock").hidden=false;$("writingBlock").hidden=isW;$("qBlock").hidden=isW;$("totalBox").hidden=isW;
   [...$("fluencyBlock").querySelector(".grid").children].slice(1).forEach(el=&gt;{ if(el.id!=="otherWrap") el.hidden=isW; });
   if(isW)$("otherWrap").hidden=true;
   $("max").textContent=maxOf(t);
@@ -1214,7 +1302,7 @@ function applyText(){
   if(CFG.tests[state.test].words){ $("otherWrap").hidden=true; return; }
   const k=knownText($("txt").value);
   $("otherWrap").hidden=!!k||!$("txt").value;
-  if(k){ $("words").value=k.words; state.choice.nikud=k.nikud; }
+  if(k){ $("words").value=k.words; state.choice.nikud=k.nikud; state.choice.textLevel=k.level; }
   else { $("words").value=$("otherWords").value||""; $("otherName").value=$("txt").value===OTHER?"":$("txt").value; }
   $("words").readOnly=!!k;
   renderAllSegs();
@@ -1302,10 +1390,31 @@ function renderWordItems(){
   const it=CFG.fluency.filter(f=&gt;f[0]==="mode"||f[0]==="pace");
   $("wextra").innerHTML=it.map(f=&gt;`&lt;div class="item"&gt;&lt;div class="lbl"&gt;${esc(f[1])}&lt;/div&gt;&lt;div class="seg" data-key="${f[0]}" data-opts="${esc(f[2])}"&gt;&lt;/div&gt;&lt;/div&gt;`).join("");
 }
+function renderWriting(){
+  const W=CFG.writing; if(!W)return;
+  let html="", last="";
+  W.items.forEach(i=&gt;{
+    if(i.group&amp;&amp;i.group!==last){ const g=W.groups[i.group]; html+=`&lt;h3 class="wsub"&gt;${esc(g.title)}&lt;small&gt;${esc(g.note)}&lt;/small&gt;&lt;/h3&gt;`; last=i.group }
+    else if(!i.group){ last="" }
+    html+=`&lt;div class="item"&gt;&lt;div class="lbl"&gt;${esc(i.label)}&lt;/div&gt;&lt;div class="seg stack" data-key="${i.key}" data-opts="${esc(i.opts)}"&gt;&lt;/div&gt;&lt;/div&gt;`;
+  });
+  $("writingItems").innerHTML=html;
+}
+function schoolYearOf(d){
+  const m=/^(\d{4})-(\d{2})/.exec(String(d||"")); if(!m)return "";
+  let n=Number(m[1])+(Number(m[2])&gt;=9?1:0)+3760-5000;
+  const tens=["","י","כ","ל","מ","נ","ס","ע","פ","צ"],ones=["","א","ב","ג","ד","ה","ו","ז","ח","ט"];
+  let s=""; while(n&gt;=400){s+="ת";n-=400}
+  if(n&gt;=100){s+=["","ק","ר","ש"][Math.floor(n/100)];n%=100}
+  if(n===15)s+="טו";else if(n===16)s+="טז";else s+=tens[Math.floor(n/10)]+ones[n%10];
+  const fin={"כ":"ך","מ":"ם","נ":"ן","פ":"ף","צ":"ץ"}, last=fin[s.slice(-1)]||s.slice(-1);
+  return s.length&gt;1?s.slice(0,-1)+'"'+last:s+"'";
+}
 function renderMore(){
   $("more").innerHTML=CFG.more.map(s=&gt;`&lt;section class="block" data-skipwords="${s.skipWords?1:0}"&gt;&lt;h2&gt;${esc(s.title)}&lt;/h2&gt;${s.items.map(i=&gt;`&lt;div class="item"&gt;${s.items.length&gt;1||i.label!==s.title?`&lt;div class="lbl"&gt;${esc(i.label)}&lt;/div&gt;`:""}${i.desc?`&lt;details&gt;&lt;summary&gt;מה בודקים?&lt;/summary&gt;&lt;p class="hint"&gt;${esc(i.desc)}&lt;/p&gt;&lt;/details&gt;`:""}&lt;div class="seg${i.stack?" stack":""}" data-key="${i.key}" data-opts="${esc(i.opts)}"&gt;&lt;/div&gt;&lt;/div&gt;`).join("")}&lt;/section&gt;`).join("");
 }
 function update(){
+  $("schoolYear").textContent=schoolYearOf($("date").value)||"-";
   if(CFG.tests[state.test].words){const wl=state.wordsList;$("pills").innerHTML=wl.last?`&lt;span class="pill"&gt;נקראו ${wl.last}, נכונות ${wl.last-wl.errs.filter(x=&gt;x&lt;=wl.last).length-(wl.skip||[]).filter(x=&gt;x&lt;=wl.last).length}&lt;/span&gt;`:`&lt;span class="pill"&gt;טרם סומנה המילה האחרונה&lt;/span&gt;`;return}
   const a=accuracy($("errors").value);$("acc").textContent=a?a[0]:"-";$("acc").className="calc "+(a?a[1]:"");
   const w=+$("words").value,s=+$("secs").value;$("wpm").textContent=w&amp;&amp;s?Math.round(w/s*60):"-";
@@ -1330,13 +1439,15 @@ function fill(e){
 }
 function newForm(){
   const keep={cls:$("cls").value,date:$("date").value,txt:$("txt").value,words:$("words").value||$("otherWords").value,test:state.test};
-  fill(Object.assign(blank(keep.test),{cls:keep.cls,date:keep.date,txt:keep.txt,words:keep.words}));
+  const kc={}; if(state.choice&amp;&amp;state.choice.pulse)kc.pulse=state.choice.pulse; if(state.choice&amp;&amp;state.choice.textLevel&amp;&amp;$("txt").value)kc.textLevel=state.choice.textLevel;
+  fill(Object.assign(blank(keep.test),{cls:keep.cls,date:keep.date,txt:keep.txt,words:keep.words,choice:kc}));
   window.scrollTo({top:0});$("sid").focus();
 }
 
 async function save(){
   if(!$("sid").value){toast("חסר מספר תלמיד");$("sid").focus();return}
   if(!$("cls").value){toast("חסרה כיתה");return}
+  if(!state.choice.pulse){toast("יש לבחור פעימה");return}
   const btn=$("save");btn.disabled=true;btn.textContent="שומרת...";
   const e={id:state.id,origCls:state.origCls,test:state.test,cls:$("cls").value,sid:$("sid").value,date:$("date").value,txt:$("txt").value,words:$("words").value||$("otherWords").value,errors:$("errors").value,secs:$("secs").value,choice:state.choice,scores:state.scores,extra:state.extra,wordsList:state.wordsList,letters:state.letters,heard:state.heard};
   if(CFG.tests[state.test].words&amp;&amp;!state.wordsList.last){toast("יש לסמן את המילה האחרונה שנקראה");wMode="המילה האחרונה";renderWords();btn.disabled=false;btn.textContent="שמירה";return}
@@ -1371,6 +1482,7 @@ $("save").onclick=save;
 $("timer").onclick=toggleTimer;
 $("clear").onclick=()=&gt;{if(confirm("לנקות את הטופס?"))newForm()};
 ["errors","secs"].forEach(id=&gt;$(id).addEventListener("input",update));
+$("date").addEventListener("input",update);
 $("otherName").addEventListener("input",()=&gt;{$("txt").value=$("otherName").value||OTHER;update()});
 $("otherWords").addEventListener("input",()=&gt;{$("words").value=$("otherWords").value;update()});
 
@@ -1382,7 +1494,7 @@ call("getInit").then(cfg=&gt;{
   const opts=`&lt;option value=""&gt;בחירה&lt;/option&gt;`+cfg.classes.map(c=&gt;`&lt;option&gt;${esc(c)}&lt;/option&gt;`).join("");
   $("cls").innerHTML=opts;$("mineCls").innerHTML=opts;
   $("mineCls").onchange=renderRows;
-  renderMore();renderWordItems();
+  renderMore();renderWriting();renderWordItems();
   const first=Object.keys(cfg.tests)[0];
   fill(blank(storyKeys()[0]));
   $("loading").hidden=true;show("new");
@@ -1473,6 +1585,545 @@ call("getInit").then(cfg=&gt;{
     <li><b>עדכון קוד:</b> מדביקים את הקבצים החדשים, שומרים, ואז <span class="ui">לפריסה</span> ← <span class="ui">ניהול פריסות</span> ← עיפרון ✏️ ← גרסה: <span class="ui">גרסה חדשה</span> ← <span class="ui">פריסה</span>. כך הקישור נשאר אותו קישור.</li>
   </ul>
   <div class="note"><b>לא לגעת:</b> בעמודה D המוסתרת בלשונית "הגדרות", ובשמות הלשוניות בגיליונות הכיתות.<br><b>פרטיות:</b> מזינים מספרי תלמידים בלבד. את הטבלה שמקשרת מספר לשם לא שומרים באף אחד מהגיליונות.</div>
+</section>
+
+<section class="step" id="s9">
+  <h2><span class="num">8</span>מיפוי אורייני (שלב נוסף)</h2>
+  <p>המיפוי לוקח את מה שהמורות הזינו באפליקציה, משייך כל תלמיד לקבוצת הוראה, ושולח לכל מורה במייל את התלמידים שלה. הוא רץ מתוך קובץ Google Sheets נפרד, בלי אפליקציה נוספת.</p>
+  <div class="note"><b>השיוך הוא הצעה.</b> ההחלטה הפדגוגית נשארת של המורה. תלמיד שחסר לו נתון מופיע כ"טרם שויך", עם פירוט מה חסר. כל התלמידים מזוהים רק לפי כיתה ומספר, בצורה ח'1/ 5.</div>
+  <ol>
+    <li>מעלים לדרייב של <b>החשבון הארגוני</b> את <a href="mapping-template.xlsx" download>קובץ המיפוי הריק</a>, פותחים אותו ב-Google Sheets, ובוחרים <span class="ui">קובץ</span> ← <span class="ui">שמירה כגיליון Google</span>. (אם ליד השם מופיע התג XLSX, עדיין לא בוצעה המרה, ובמצב הזה אין תפריט "תוספים".)</li>
+    <li>בקובץ: <span class="ui">תוספים</span> ← <span class="ui">Apps Script</span>. מוחקים את הקוד הקיים, לוחצים על <span class="ui">העתקת קוד המיפוי</span> כאן למטה, ומדביקים. שומרים.</li>
+    <li>מרעננים את הקובץ. מופיע תפריט <b>"מיפוי"</b>. בוחרים <span class="ui">1. הכנת הקובץ</span> ומאשרים הרשאות (גם שליחת מייל).</li>
+    <li>בלשונית <b>"הגדרות מיפוי"</b> שנוצרה ממלאים: B2 הקישור לגיליון המרכזי של מבדקי קריאה, B3 מייל הרכזת, B4 מייל המנהלת.</li>
+    <li><span class="ui">2. עדכון מהמקור</span>: מעתיק את ההזנה האחרונה של כל תלמיד בכל פעימה. אחר כך ב"דף הכיתה" בוחרים כיתה, שנה ופעימה.</li>
+    <li><span class="ui">3. שליחת הנתונים במייל</span>: מוצג מי יקבל מה, ושום דבר לא נשלח בלי אישור. כל מורה מקבלת רק את התלמידים שהזינה בעצמה. בעלת הקובץ, הרכזת והמנהלת מקבלות את כל הכיתות.</li>
+  </ol>
+  <div class="codebox">
+    <div class="codebar"><div><strong>קוד המיפוי</strong> <span>(מדביקים בקובץ המיפוי, לא באפליקציה)</span></div><button class="copy" type="button" id="copy-mapping" data-target="mapping-code">העתקת קוד המיפוי</button></div>
+    <textarea class="code" id="mapping-code" readonly aria-label="קוד המיפוי">/**
+ * כללי המיפוי: רמות ב'-ו'.
+ * הכללים לקוחים מהקובץ "מיפוי אורייני - קריאה וכתיבה" ומהטפסים שבתוספת.
+ * כל הפונקציות כאן "טהורות": אין בהן גישה לגיליונות, ולכן אפשר לבדוק אותן בנפרד.
+ * החלטות הפרשנות מסומנות בהערות "פרשנות".
+ */
+
+const MAP_RULES = {
+  errorsFull: 4,      // עד 4 שגיאות: דיוק תקין (הגבולות שכבר קיימים במקור)
+  errorsPartial: 9,   // 5 עד 9: חלקי. 10 ומעלה: לא מבוסס
+  compFull: 0.75,     // 75% ומעלה בשאלות: תקינה
+  compPartial: 0.5    // 50% עד 74%: חלקית. מתחת: נמוכה
+};
+
+// נתונים שחובה שיהיו כדי לשייך תלמיד (הכרעה: נתונים מלאים, כולל כתיבה).
+// פרוזודיה חובה, אבל אינה משפיעה על הקטגוריה: אם אינה תקינה היא נרשמת בהערה לקבוצה.
+const MAP_REQUIRED = [
+  ['accuracy', 'מספר שגיאות'], ['rate', 'אופן הקריאה'], ['prosody', 'פרוזודיה'], ['readComp', 'הבנת הנקרא'],
+  ['listenComp', 'הבנת הנשמע'], ['vocab', 'אוצר מילים'], ['expr', 'יכולת הבעה'],
+  ['content', 'כתיבה: תוכן'], ['org', 'כתיבה: ארגון ולכידות'], ['lang', 'כתיבה: לשון']
+];
+
+const MAP_LEVELS = {
+  'מיקוד בשטף קריאה': "רמה א'",
+  'מיקוד בשטף הקריאה ובכישורי שפה': "רמה א'",
+  'מיקוד בכישורי שפה': "רמה ב'",
+  'מיקוד בהבנה והבעה': "רמה ב'",
+  'קוראים וכותבים מיומנים': "רמה ג'"
+};
+const MAP_LEVEL_ORDER = { "רמה א'": 1, "רמה ב'": 2, "רמה ג'": 3 };
+const MAP_TEXT_ORDER = { 'כיתה ב': 2, 'כיתה ג': 3, 'כיתה ד': 4, 'כיתה ה': 5, 'כיתה ו': 6 };
+const MAP_ACQ_GROUP = 'קבוצה רביעית: הקניית קריאה';
+
+// מוקד העבודה בכל קבוצה, כלשון התוספת
+const MAP_FOCUS = {
+  "רמה א'": 'דיוק ואוטומטיזציה של הפענוח, קריאה חוזרת ופרקטיקות "קול קורא" בטקסטים מדורגים ברמת התפקוד של התלמיד',
+  "רמה ב'": 'שפה והבנה: הטרמת אוצר מילים וידע עולם, אסטרטגיות הבנה מסיקה, ופיתוח ההבעה בכתב לפי הרכיב שאותר כחלש',
+  "רמה ג'": 'העמקה ואתגר, קריאה דיאלוגית ושימוש עצמאי בכישורים האורייניים לצורכי למידה',
+  [MAP_ACQ_GROUP]: 'נרשמים בטבלה. כרגע אין עבודת מיפוי על קבוצה זו'
+};
+
+function mapLevelFromErrors_(errors) {
+  if (errors === '' || errors == null || isNaN(errors)) return null;
+  const n = Number(errors);
+  return n &lt;= MAP_RULES.errorsFull ? 'תקין' : n &lt;= MAP_RULES.errorsPartial ? 'חלקי' : 'לא מבוסס';
+}
+
+// קצב הוא רציפות הקריאה, לפי אופן הקריאה (הכרעה): גלובלית = תקין, מקוטעת = חלקי, מצרף = לא מבוסס
+function mapRate_(mode) { return { 'גלובלית ברובה': 'תקין', 'מקוטעת ברובה': 'חלקי', 'מצרף': 'לא מבוסס' }[mode] || null; }
+
+function mapLevelFromProsody_(p) { return { 'גבוהה': 'תקין', 'בינונית': 'חלקי', 'נמוכה': 'לא מבוסס' }[p] || null; }
+
+function mapCompLevel_(total, max) {
+  if (total === '' || total == null || !Number(max)) return null;
+  const r = Number(total) / Number(max);
+  return r &gt;= MAP_RULES.compFull ? 'תקינה' : r &gt;= MAP_RULES.compPartial ? 'חלקית' : 'נמוכה';
+}
+
+// "מגלה חוסר באוצר מילים": כן = לא תקין
+function mapVocabOk_(v) { return v === 'כן' ? false : v === 'לא' ? true : null; }
+
+// "שפה והבעה": רק האפשרות "מגלה חולשה שפתית" נחשבת לא תקינה (הכלל בודק רק תקין או לא תקין)
+function mapExprOk_(v) {
+  if (!v) return null;
+  return String(v).indexOf('מגלה חולשה') === 0 ? false : true;
+}
+
+// רמות בכתיבה לפי המילה שלפני הנקודתיים: 0 עליונה, 1 בינונית, 2 נמוכה
+const MAP_WRITING = {
+  content: ['מפותח', 'חלקי', 'דל'],
+  org: ['מפותח', 'חלקי', 'אינו מפותח'],
+  lang: ['מפותחת', 'חלקית', 'דלה']
+};
+function mapWritingOrdinal_(key, v) {
+  if (!v) return null;
+  const head = String(v).split(':')[0].trim();
+  const i = MAP_WRITING[key].indexOf(head);
+  return i &lt; 0 ? null : i;
+}
+
+function mapWrittenExpression_(c, o, l) {
+  const a = [c, o, l];
+  if (a.every(x =&gt; x === 0)) return 'מפותחת';
+  if (a.filter(x =&gt; x === 2).length &gt;= 2) return 'אינה מפותחת';
+  return 'חלקית';
+}
+
+function mapReadingQuality_(acc, rate, pros) {
+  if (acc === 'תקין' &amp;&amp; rate === 'תקין') return pros === 'תקין' ? 'רהוטה' : 'מדויקת ורציפה';
+  return 'אינה מדויקת או מקוטעת';
+}
+
+// הבנת הנשמע נמוכה, או שניים לפחות משלושה (הבנת נשמע, אוצר מילים, הבעה) אינם תקינים
+function mapLanguageWeakness_(listen, vocabOk, exprOk) {
+  const notNormal = [listen !== 'תקינה', !vocabOk, !exprOk].filter(Boolean).length;
+  return listen === 'נמוכה' || notNormal &gt;= 2 ? 'ניכרת' : 'אינה ניכרת';
+}
+
+/**
+ * השיוך לאחת מחמש הקטגוריות. הכרעת הצוות: פרוזודיה אינה נדרשת כדי להיות מיומן,
+ * ולכן "מדויקת ורציפה" מספיקה. פרשנות: הבנה "חלקית" או "נמוכה" נחשבת לא תקינה,
+ * והבעה בכתב שאינה "מפותחת" (חלקית או אינה מפותחת) מובילה למיקוד בהבנה והבעה.
+ */
+function mapCategory_(quality, weakness, comp, written) {
+  const accurate = quality !== 'אינה מדויקת או מקוטעת';
+  if (!accurate) return weakness === 'ניכרת' ? 'מיקוד בשטף הקריאה ובכישורי שפה' : 'מיקוד בשטף קריאה';
+  if (weakness === 'ניכרת') return 'מיקוד בכישורי שפה';
+  if (comp === 'תקינה' &amp;&amp; written === 'מפותחת') return 'קוראים וכותבים מיומנים';
+  return 'מיקוד בהבנה והבעה';
+}
+
+/** הערה לקבוצה: שתיים מהן כבר ב-v3, והשלישית (הנגנה) לפי ההכרעה */
+function mapNote_(level, weakness, written, prosody) {
+  const n = [];
+  if (level === "רמה א'" &amp;&amp; weakness === 'ניכרת') n.push('להוסיף עבודת אוצר מילים');
+  if (written === 'אינה מפותחת') n.push('דגש על הבעה בכתב');
+  if (prosody !== 'תקין') n.push('נדרש לעבוד על ההנגנה');
+  return n.join('; ');
+}
+
+/** תלמיד אחד בפעימה אחת. rec: הנתונים הגולמיים כפי שהם שמורים במקור */
+function mapStudent_(rec) {
+  const f = {
+    accuracy: mapLevelFromErrors_(rec.errors),
+    rate: mapRate_(rec.mode),
+    prosody: mapLevelFromProsody_(rec.prosody),
+    readComp: mapCompLevel_(rec.readTotal, rec.readMax),
+    listenComp: mapCompLevel_(rec.listenTotal, rec.listenMax),
+    vocab: mapVocabOk_(rec.lacksVocab),
+    expr: mapExprOk_(rec.safa),
+    content: mapWritingOrdinal_('content', rec.content),
+    org: mapWritingOrdinal_('org', rec.org),
+    lang: mapWritingOrdinal_('lang', rec.lang)
+  };
+  const missing = MAP_REQUIRED.filter(r =&gt; f[r[0]] === null || f[r[0]] === undefined).map(r =&gt; r[1]);
+  const out = { findings: f, missing: missing, textLevel: rec.textLevel || '' };
+  if (missing.length) { out.status = 'טרם שויך'; return out; }
+  out.quality = mapReadingQuality_(f.accuracy, f.rate, f.prosody);
+  out.weakness = mapLanguageWeakness_(f.listenComp, f.vocab, f.expr);
+  out.written = mapWrittenExpression_(f.content, f.org, f.lang);
+  out.category = mapCategory_(out.quality, out.weakness, f.readComp, out.written);
+  out.level = MAP_LEVELS[out.category];
+  out.note = mapNote_(out.level, out.weakness, out.written, f.prosody);
+  out.status = 'שויך';
+  out.rationale = 'קריאה ' + out.quality + '. ' + (out.weakness === 'ניכרת' ? 'ניכרת חולשה שפתית' : 'אין חולשה שפתית') +
+    '. הבנת הנקרא ' + f.readComp + '. הבעה בכתב ' + out.written + '.';
+  return out;
+}
+
+/** תנועה לעומת הפעימה הקודמת, לפי האפשרויות שבטופס, ובנוסף ירידה בקטגוריה (תוספת שלי) */
+function mapMovement_(prev, cur) {
+  if (!prev || prev.status !== 'שויך' || cur.status !== 'שויך') return { text: 'אין נתון להשוואה', up: [], down: [] };
+  const up = [], down = [];
+  const dl = MAP_LEVEL_ORDER[cur.level] - MAP_LEVEL_ORDER[prev.level];
+  if (dl &gt; 0) up.push('עלייה בקטגוריה'); else if (dl &lt; 0) down.push('ירידה בקטגוריה');
+  if ((MAP_TEXT_ORDER[cur.textLevel] || 0) &gt; (MAP_TEXT_ORDER[prev.textLevel] || 0)) up.push('עלייה ברמת הטקסט');
+  const w = f =&gt; 6 - (f.content + f.org + f.lang);
+  if (w(cur.findings) &gt; w(prev.findings)) up.push('עלייה ברכיבי הכתיבה');
+  return { text: up.concat(down).join(', ') || 'ללא שינוי', up: up, down: down };
+}
+
+/** סיכום כיתה: מי בכל קבוצה, ומי טרם שויך. items: [{sid, track, result}] */
+function mapClassSummary_(items) {
+  const groups = { "רמה א'": [], "רמה ב'": [], "רמה ג'": [] };
+  groups[MAP_ACQ_GROUP] = [];
+  const pending = [];
+  items.forEach(it =&gt; {
+    if (it.track === 'acq') groups[MAP_ACQ_GROUP].push(it.sid);
+    else if (it.result.status === 'שויך') groups[it.result.level].push(it.sid);
+    else pending.push({ sid: it.sid, missing: it.result.missing });
+  });
+  const assigned = groups["רמה א'"].length + groups["רמה ב'"].length + groups["רמה ג'"].length;
+  return { groups: groups, pending: pending, assigned: assigned, total: items.length };
+}
+/**
+ * מיפוי אורייני: עדכון מהמקור ושליחת נתונים במייל.
+ * רץ מתוך קובץ המיפוי (Apps Script שמחובר אליו), ללא אפליקציה נוספת.
+ * הכללים עצמם נמצאים בקובץ Mapping (אותו קוד, מודבק מעל קובץ זה).
+ */
+
+const MS_SETTINGS = 'הגדרות מיפוי';
+const MS_SHEET_TEXT = 'הזנה ב-ו';
+const MS_SHEET_ACQ = 'הזנה רכישה';
+const MS_FIRST_ROW = 6;
+const MS_PULSES = ['תחילת שנה', 'מחצית שנה', 'סוף השנה'];
+const MS_TEXT_SHEETS = ['השבלול', 'דוב נמלים', 'הישרדות'];   // לשוניות מבדקי הטקסט במקור
+const MS_WORDS_SHEET = 'רשימת מילים';
+// כתובות בהגדרות
+const MS_CELL_SOURCE = 'B2', MS_CELL_COORD = 'B3', MS_CELL_PRINCIPAL = 'B4';
+
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu('מיפוי')
+    .addItem('1. הכנת הקובץ (פעם אחת)', 'msSetup')
+    .addItem('2. עדכון מהמקור', 'msSync')
+    .addItem('3. שליחת הנתונים במייל', 'msSendEmails')
+    .addToUi();
+}
+
+/* ---------------- הגדרות ---------------- */
+
+function msSetup() {
+  const ss = SpreadsheetApp.getActive();
+  let st = ss.getSheetByName(MS_SETTINGS);
+  if (!st) st = ss.insertSheet(MS_SETTINGS);
+  st.getRange('A1:B1').setValues([['הגדרות המיפוי', '']]).setFontWeight('bold');
+  st.getRange('A2:A4').setValues([['קישור לגיליון המרכזי של מבדקי קריאה (המקור)'], ['מייל הרכזת'], ['מייל המנהלת']]);
+  st.setColumnWidth(1, 330); st.setColumnWidth(2, 420);
+  st.getRange('A6').setValue('הנתונים של כולם נשלחים גם אל בעלת הקובץ (המשתמשת שמריצה). כל מורה מקבלת רק את התלמידים שהזינה בעצמה.');
+  ss.setActiveSheet(st);
+  SpreadsheetApp.getUi().alert('הכנת הקובץ',
+    'נוצרה לשונית "' + MS_SETTINGS + '".\nמלאי בה את הקישור לגיליון המרכזי ואת שני המיילים, ואז הריצי "עדכון מהמקור".',
+    SpreadsheetApp.getUi().ButtonSet.OK);
+}
+
+function msSettings_() {
+  const st = SpreadsheetApp.getActive().getSheetByName(MS_SETTINGS);
+  if (!st) throw new Error('צריך קודם להריץ "הכנת הקובץ".');
+  const v = a =&gt; String(st.getRange(a).getValue() || '').trim();
+  return { source: v(MS_CELL_SOURCE), coord: v(MS_CELL_COORD).toLowerCase(), principal: v(MS_CELL_PRINCIPAL).toLowerCase() };
+}
+
+function msSourceId_(s) {
+  const m = /\/d\/([a-zA-Z0-9_-]+)/.exec(s);
+  return m ? m[1] : s;
+}
+
+function msOwnerEmail_() {
+  return String(Session.getEffectiveUser().getEmail() || Session.getActiveUser().getEmail() || '').toLowerCase();
+}
+
+/* ---------------- קריאת המקור (פונקציות טהורות, נבדקות בנפרד) ---------------- */
+
+const MS_TEXT_SHEET_FIELDS = {
+  teacher: 'מורה (מייל)', date: 'תאריך המבדק', cls: 'כיתה', sid: 'מספר תלמיד', updated: 'עודכן',
+  nikud: 'סוג הטקסט', errors: 'מספר השגיאות', mode: 'אופן הקריאה', prosody: 'פרוזודיה',
+  readTotal: 'סה"כ בשאלות', readMax: 'ניקוד מרבי', pulse: 'פעימה', year: 'שנת לימודים', textLevel: 'רמת הטקסט',
+  listenTotal: 'הבנת הנשמע: סה"כ', listenMax: 'הבנת הנשמע: מתוך',
+  lacksVocab: 'מגלה חוסר באוצר מילים ובידע לשוני', safa: 'שפה והבעה', siach: 'השתתפות בשיח האורייני',
+  wgenre: 'כתיבה: הסוגה שנבדקה', whand: 'כתיבה: כתב', wspell: 'כתיבה: כתיב',
+  content: 'כתיבה: תוכן', org: 'כתיבה: ארגון ולכידות', lang: 'כתיבה: לשון', wattitude: 'כתיבה: עמדה כלפי כתיבה'
+};
+const MS_WORDS_SHEET_FIELDS = {
+  teacher: 'מורה (מייל)', date: 'תאריך המבדק', cls: 'כיתה', sid: 'מספר תלמיד', updated: 'עודכן', pulse: 'פעימה', year: 'שנת לימודים'
+};
+
+/** זיהוי תלמיד לתצוגה: כיתה עם גרש, ואחריה לוכסן ורווח ומספר (ח'1/ 7). כך הוא נקרא נכון גם מימין לשמאל */
+function msStudentLabel_(cls, sid) {
+  return String(cls).replace(/^([א-ת]+)(\d+)$/, "$1'$2") + '/ ' + sid;
+}
+
+function msDateKey_(d) {
+  return d instanceof Date ? d.getTime() : (d ? new Date(d).getTime() || 0 : 0);
+}
+
+/** sheetData: [{ words: bool, headers: [...], rows: [[...]] }] -&gt; רשומות גולמיות */
+function msRecordsFromSheets_(sheetData) {
+  const out = [];
+  sheetData.forEach(sd =&gt; {
+    const map = sd.words ? MS_WORDS_SHEET_FIELDS : MS_TEXT_SHEET_FIELDS;
+    const idx = {};
+    Object.keys(map).forEach(k =&gt; { idx[k] = sd.headers.indexOf(map[k]); });
+    sd.rows.forEach((r, i) =&gt; {
+      const rec = { track: sd.words ? 'acq' : 'text', order: i };
+      Object.keys(idx).forEach(k =&gt; { rec[k] = idx[k] &lt; 0 ? '' : r[idx[k]]; });
+      if (!rec.cls || rec.sid === '' || !rec.pulse || !rec.year) return;      // בלי פעימה אי אפשר למפות
+      rec.sid = String(rec.sid).trim();
+      rec.cls = String(rec.cls).trim();
+      rec.teacher = String(rec.teacher || '').trim().toLowerCase();
+      out.push(rec);
+    });
+  });
+  return out;
+}
+
+/** ההזנה האחרונה של כל תלמיד בכל פעימה. הזנה במסלול הטקסט גוברת על רשימת מילים באותה פעימה */
+function msLatestPerPulse_(recs) {
+  const best = {};
+  recs.forEach(r =&gt; {
+    const key = [r.year, r.cls, r.sid, r.pulse].join('|');
+    const cur = best[key];
+    if (!cur) { best[key] = r; return; }
+    if (cur.track === 'text' &amp;&amp; r.track === 'acq') return;
+    if (cur.track === 'acq' &amp;&amp; r.track === 'text') { best[key] = r; return; }
+    const a = msDateKey_(r.updated), b = msDateKey_(cur.updated);
+    if (a &gt; b || (a === b &amp;&amp; r.order &gt; cur.order)) best[key] = r;
+  });
+  return Object.keys(best).map(k =&gt; best[k]);
+}
+
+/* ---------------- המרה לשפה של גיליון המיפוי ---------------- */
+
+function msHead_(v) { return v ? String(v).split(':')[0].trim() : ''; }
+
+/** שורת הזנה לגיליון "הזנה ב-ו" (24 עמודות A..X), לפי עמודות v3 */
+function msTextRow_(rec) {
+  const f = mapStudent_(rec).findings;
+  const lvl = rec.textLevel ? 'רמת ' + rec.textLevel + "'" : '';
+  const exprV = rec.safa ? (mapExprOk_(rec.safa) ? 'תקינה' : 'מוגבלת') : '';
+  const vocabV = f.vocab === null ? '' : (f.vocab ? 'תקין' : 'מצומצם');
+  const s = String(rec.siach || '');
+  const siachV = !s ? '' : s.indexOf('ממעט') === 0 ? 'ממעט להשתתף' : (s.indexOf('ומפיק') &gt;= 0 || s.indexOf('ומצליח') &gt;= 0) ? 'פעילה' : 'חלקית';
+  const h = String(rec.whand || '');
+  const wHand = !h ? '' : h.indexOf('אינו קריא') === 0 ? 'אינו קריא' : h.indexOf('קריא חלקית') === 0 ? 'קריא חלקית' : 'קריא ומאורגן';
+  const sp = msHead_(rec.wspell);
+  const wSpell = ['תקין', 'חלקי', 'לא מבוסס'].indexOf(sp) &lt; 0 ? '' : sp;
+  return [
+    rec.year, rec.cls, msStudentLabel_(rec.cls, rec.sid), rec.teacher, rec.date || '', rec.pulse,
+    lvl, rec.nikud === 'מנוקד' ? 'כתב מנוקד' : (rec.nikud ? 'כתב לא מנוקד' : ''),
+    f.accuracy || '', f.rate || '', f.prosody || '', f.readComp || '', f.listenComp || '', vocabV, exprV, siachV,
+    rec.pulse === 'תחילת שנה' ? 'פעימה ראשונה' : 'פעימה שנייה',
+    rec.wgenre || '', wHand, wSpell, msHead_(rec.content), msHead_(rec.org), msHead_(rec.lang), rec.wattitude || ''
+  ];
+}
+
+function msAcqRow_(rec) {
+  return [rec.year, rec.cls, msStudentLabel_(rec.cls, rec.sid), rec.teacher, rec.date || '', rec.pulse];
+}
+
+function msSortRows_(rows) {
+  const po = p =&gt; MS_PULSES.indexOf(p);
+  return rows.sort((a, b) =&gt; String(a[1]).localeCompare(String(b[1]), 'he') ||
+    Number(String(a[2]).split('/')[1]) - Number(String(b[2]).split('/')[1]) || po(a[5]) - po(b[5]));
+}
+
+/** מכין את שתי טבלאות ההזנה מהרשומות העדכניות */
+function msBuildTables_(latest) {
+  const text = [], acq = [];
+  latest.forEach(r =&gt; (r.track === 'text' ? text : acq).push(r.track === 'text' ? msTextRow_(r) : msAcqRow_(r)));
+  return { text: msSortRows_(text), acq: msSortRows_(acq) };
+}
+
+/* ---------------- מיילים (פונקציות טהורות) ---------------- */
+
+function msEsc_(s) { return String(s).replace(/[&amp;&lt;&gt;"]/g, c =&gt; ({ '&amp;': '&amp;amp;', '&lt;': '&amp;lt;', '&gt;': '&amp;gt;', '"': '&amp;quot;' }[c])); }
+
+/** מסכם כיתה אחת בפעימה האחרונה של שנת הלימודים האחרונה. recs: הרשומות העדכניות שבתחום (למורה: רק שלה) */
+function msClassReport_(recs, cls) {
+  const mine = recs.filter(r =&gt; r.cls === cls);
+  if (!mine.length) return null;
+  const lastDate = mine.reduce((m, r) =&gt; Math.max(m, msDateKey_(r.date)), 0);
+  const yearRec = mine.find(r =&gt; msDateKey_(r.date) === lastDate) || mine[0];
+  const inYear = mine.filter(r =&gt; r.year === yearRec.year);
+  const maxPulse = inYear.reduce((m, r) =&gt; Math.max(m, MS_PULSES.indexOf(r.pulse)), 0);
+  const pulse = MS_PULSES[maxPulse];
+  const cur = inYear.filter(r =&gt; r.pulse === pulse);
+  const prevPulse = maxPulse &gt; 0 ? MS_PULSES[maxPulse - 1] : null;
+  const items = cur.map(r =&gt; {
+    const id = msStudentLabel_(r.cls, r.sid);
+    if (r.track === 'acq') return { sid: id, track: 'acq', result: null };
+    const res = mapStudent_(r);
+    const prevRec = prevPulse ? inYear.find(p =&gt; p.sid === r.sid &amp;&amp; p.pulse === prevPulse &amp;&amp; p.track === 'text') : null;
+    res.movement = prevRec ? mapMovement_(mapStudent_(prevRec), res).text : 'אין נתון להשוואה';
+    return { sid: id, track: 'text', result: res };
+  });
+  return { cls: cls, year: yearRec.year, pulse: pulse, items: items, summary: mapClassSummary_(items) };
+}
+
+function msReportHtml_(rep) {
+  const s = rep.summary, by = {};
+  rep.items.forEach(it =&gt; { if (it.result) by[it.sid] = it.result; });
+  const groupRow = (name, ids) =&gt; {
+    const body = ids.length ? ids.map(id =&gt; {
+      const r = by[id];
+      const mv = r &amp;&amp; r.movement &amp;&amp; r.movement !== 'אין נתון להשוואה' &amp;&amp; r.movement !== 'ללא שינוי' ? r.movement : '';
+      const bits = r ? [r.note, mv].filter(Boolean) : [];
+      return '&lt;li&gt;' + msEsc_(id) + (bits.length ? ' &lt;span style="color:#555"&gt;(' + msEsc_(bits.join('; ')) + ')&lt;/span&gt;' : '') + '&lt;/li&gt;';
+    }).join('') : '&lt;li style="color:#777"&gt;אין תלמידים&lt;/li&gt;';
+    return '&lt;h4 style="margin:12px 0 4px"&gt;' + msEsc_(name) + ' (' + ids.length + ')&lt;/h4&gt;&lt;div style="color:#555;font-size:13px"&gt;' +
+      msEsc_(MAP_FOCUS[name] || '') + '&lt;/div&gt;&lt;ul style="margin:4px 0"&gt;' + body + '&lt;/ul&gt;';
+  };
+  let h = '&lt;h3 style="margin-bottom:2px"&gt;כיתה ' + msEsc_(rep.cls) + ' - ' + msEsc_(rep.pulse) + ', ' + msEsc_(rep.year) + '&lt;/h3&gt;';
+  h += groupRow("רמה א'", s.groups["רמה א'"]) + groupRow("רמה ב'", s.groups["רמה ב'"]) + groupRow("רמה ג'", s.groups["רמה ג'"]);
+  h += groupRow(MAP_ACQ_GROUP, s.groups[MAP_ACQ_GROUP]);
+  if (s.pending.length) {
+    h += '&lt;h4 style="margin:12px 0 4px"&gt;טרם שויכו (' + s.pending.length + ')&lt;/h4&gt;&lt;ul style="margin:4px 0"&gt;' +
+      s.pending.map(p =&gt; '&lt;li&gt;' + msEsc_(p.sid) + ' &lt;span style="color:#555"&gt;(חסר: ' + msEsc_(p.missing.join(', ')) + ')&lt;/span&gt;&lt;/li&gt;').join('') + '&lt;/ul&gt;';
+  }
+  return h;
+}
+
+function msEmailHtml_(title, reports) {
+  return '&lt;div dir="rtl" style="font-family:Arial,sans-serif;font-size:15px;line-height:1.5;max-width:640px"&gt;' +
+    '&lt;h2 style="margin-bottom:0"&gt;' + msEsc_(title) + '&lt;/h2&gt;' +
+    '&lt;p style="color:#555;margin-top:4px"&gt;שיוך התלמידים לקבוצות הוא הצעה אוטומטית לפי הנתונים שהוזנו. ההחלטה הסופית שלך.&lt;/p&gt;' +
+    reports.map(msReportHtml_).join('&lt;hr style="border:0;border-top:1px solid #ddd"&gt;') +
+    '&lt;/div&gt;';
+}
+
+function msSortedClasses_(recs) {
+  return Array.from(new Set(recs.map(r =&gt; r.cls))).sort((a, b) =&gt; a.localeCompare(b, 'he'));
+}
+
+/** מי מקבל מה. הבעלים, הרכזת והמנהלת: הכל. כל מורה: רק התלמידים שהיא הזינה */
+function msPlan_(latest, owner, coord, principal) {
+  const plan = [], seen = {};
+  const full = msSortedClasses_(latest).map(c =&gt; msClassReport_(latest, c)).filter(Boolean);
+  [owner, coord, principal].forEach(to =&gt; {
+    if (to &amp;&amp; !seen[to]) { seen[to] = true; plan.push({ to: to, subject: 'מיפוי אורייני: הנתונים של כל הכיתות', reports: full }); }
+  });
+  Array.from(new Set(latest.map(r =&gt; r.teacher).filter(Boolean))).forEach(t =&gt; {
+    if (seen[t]) return;                                   // מי שכבר מקבלת הכל לא מקבלת פעמיים
+    const mine = latest.filter(r =&gt; r.teacher === t);
+    const reps = msSortedClasses_(mine).map(c =&gt; msClassReport_(mine, c)).filter(Boolean);
+    if (reps.length) plan.push({ to: t, subject: 'מיפוי אורייני: התלמידים שלך', reports: reps });
+  });
+  return plan;
+}
+
+/* ---------------- גישה לגיליונות ---------------- */
+
+function msReadSource_() {
+  const cfg = msSettings_();
+  if (!cfg.source) throw new Error('חסר קישור לגיליון המרכזי בלשונית "' + MS_SETTINGS + '" (תא B2).');
+  const central = SpreadsheetApp.openById(msSourceId_(cfg.source));
+  const st = central.getSheetByName('הגדרות');
+  if (!st || st.getLastRow() &lt; 2) throw new Error('בגיליון המרכזי אין לשונית "הגדרות" עם כיתות.');
+  const rows = st.getRange(2, 1, st.getLastRow() - 1, 4).getValues();
+  const data = [], missing = [], notes = [];
+  rows.forEach(r =&gt; {
+    const cls = String(r[0]).trim(), id = String(r[3]).trim();
+    if (!cls) return;
+    if (!id) { missing.push(cls); return; }
+    const book = SpreadsheetApp.openById(id);
+    MS_TEXT_SHEETS.concat([MS_WORDS_SHEET]).forEach(name =&gt; {
+      const sh = book.getSheetByName(name);
+      if (!sh || sh.getLastRow() &lt; 2) return;
+      const vals = sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).getValues();
+      const headers = vals[0].map(String);
+      const known = name === MS_WORDS_SHEET ? MS_WORDS_SHEET_FIELDS : MS_TEXT_SHEET_FIELDS;
+      const keys = Object.keys(known);
+      const found = keys.filter(k =&gt; headers.indexOf(known[k]) &gt;= 0).length;
+      const blank = k =&gt; vals.slice(1).filter(row =&gt; headers.indexOf(known[k]) &lt; 0 || String(row[headers.indexOf(known[k])]).trim() === '').length;
+      const sample = vals[1];
+      const show = k =&gt; { const i = headers.indexOf(known[k]); return i &lt; 0 ? '?' : '[' + String(sample[i]) + ']'; };
+      notes.push('כיתה ' + cls + ', "' + name + '": ' + (vals.length - 1) + ' שורות, ' + found + ' מתוך ' + keys.length + ' עמודות מוכרות' +
+        '\n   ריקים: כיתה ' + blank('cls') + ', מספר ' + blank('sid') + ', פעימה ' + blank('pulse') + ', שנה ' + blank('year') +
+        '\n   בשורה הראשונה: כיתה ' + show('cls') + ', מספר ' + show('sid') + ', פעימה ' + show('pulse') + ', שנה ' + show('year'));
+      data.push({ words: name === MS_WORDS_SHEET, headers: headers, rows: vals.slice(1) });
+    });
+  });
+  return { data: data, missingClasses: missing, notes: notes };
+}
+
+function msWrite_(sheetName, rows, ncols) {
+  const sh = SpreadsheetApp.getActive().getSheetByName(sheetName);
+  if (!sh) throw new Error('חסרה לשונית "' + sheetName + '". זה לא הקובץ הנכון?');
+  const cap = sh.getMaxRows() - (MS_FIRST_ROW - 1);
+  if (rows.length &gt; cap) throw new Error('יש ' + rows.length + ' שורות והטבלה "' + sheetName + '" מכילה ' + cap + '. צריך להרחיב אותה.');
+  sh.getRange(MS_FIRST_ROW, 1, cap, ncols).clearContent();
+  if (rows.length) sh.getRange(MS_FIRST_ROW, 1, rows.length, ncols).setValues(rows);
+}
+
+/* ---------------- התפריט ---------------- */
+
+function msLatest_() {
+  const src = msReadSource_();
+  return { latest: msLatestPerPulse_(msRecordsFromSheets_(src.data)), missingClasses: src.missingClasses, notes: src.notes };
+}
+
+function msSync() {
+  const ui = SpreadsheetApp.getUi();
+  try {
+    const got = msLatest_();
+    const t = msBuildTables_(got.latest);
+    msWrite_(MS_SHEET_TEXT, t.text, 24);
+    msWrite_(MS_SHEET_ACQ, t.acq, 6);
+    SpreadsheetApp.flush();
+    ui.alert('עדכון מהמקור', 'הועתקו ' + t.text.length + ' הזנות מרמות ב-ו ו-' + t.acq.length + ' תלמידים בקבוצה הרביעית (רשימת מילים בלבד).' +
+      (got.missingClasses.length ? '\n\nשימי לב: לכיתות האלה עוד אין גיליון במקור: ' + got.missingClasses.join(', ') : '') +
+      '\n\nתלמיד שחסר לו נתון יופיע בדף הכיתה כ"טרם שויך".' +
+      (t.text.length + t.acq.length === 0 ? '\n\nלא נמצאו הזנות להעתקה. מה שנקרא מהמקור:\n' +
+        (got.notes.length ? got.notes.join('\n') : 'לא נמצאה אף לשונית מבדק עם שורות. בדקי שבגיליון הכיתה יש כותרות בשורה 1 והנתונים מתחילים בשורה 2.') +
+        '\n\nהזנה נספרת רק אם יש בה כיתה, מספר תלמיד, פעימה ושנת לימודים.' : ''), ui.ButtonSet.OK);
+  } catch (e) {
+    ui.alert('העדכון לא הושלם', String(e.message || e), ui.ButtonSet.OK);
+  }
+}
+
+function msSendEmails() {
+  const ui = SpreadsheetApp.getUi();
+  try {
+    const cfg = msSettings_();
+    const got = msLatest_();
+    const plan = msPlan_(got.latest, msOwnerEmail_(), cfg.coord, cfg.principal);
+    if (!plan.length) { ui.alert('אין מה לשלוח', 'לא נמצאו הזנות עם פעימה במקור.', ui.ButtonSet.OK); return; }
+    const list = plan.map(p =&gt; '• ' + p.to + ' (' + p.reports.length + ' כיתות)').join('\n');
+    const ans = ui.alert('שליחת הנתונים', 'יישלחו ' + plan.length + ' מיילים:\n\n' + list + '\n\nלשלוח?', ui.ButtonSet.YES_NO);
+    if (ans !== ui.Button.YES) return;
+    let sent = 0; const failed = [];
+    plan.forEach(p =&gt; {
+      try {
+        MailApp.sendEmail({ to: p.to, subject: p.subject, htmlBody: msEmailHtml_(p.subject, p.reports), name: 'מיפוי אורייני' });
+        sent++;
+      } catch (e) { failed.push(p.to + ': ' + e.message); }
+    });
+    ui.alert('השליחה הסתיימה', 'נשלחו ' + sent + ' מיילים.' + (failed.length ? '\n\nלא נשלחו:\n' + failed.join('\n') : ''), ui.ButtonSet.OK);
+  } catch (e) {
+    ui.alert('השליחה לא הושלמה', String(e.message || e), ui.ButtonSet.OK);
+  }
+}
+</textarea>
+  </div>
+  <div class="note"><b>לא מקלידים</b> בלשוניות "הזנה ב-ו" ו"הזנה רכישה": כל עדכון מוחק ומעתיק מחדש. <b>לא מדביקים נתונים בגיליונות הכיתה</b> אלא מהאפליקציה. אם משהו לא עובר, ההודעה אחרי "עדכון מהמקור" מפרטת כמה שורות נקראו ומה חסר בהן.</div>
+</section>
+
+<section class="step" id="teachers">
+  <h2><span class="num">👩‍🏫</span>הסבר למורות</h2>
+  <p>כך מזינים תלמיד כדי שישויך לקבוצה. אפשר להעתיק את הדף הזה ולשלוח למורות.</p>
+  <ol>
+    <li>נכנסים לקישור של האפליקציה עם <b>המייל הארגוני</b> של בית הספר.</li>
+    <li>בוחרים כיתה, מספר תלמיד, תאריך, ו<b>פעימה</b> (תחילת שנה, מחצית שנה או סוף השנה). <b>בלי פעימה ההזנה לא עוברת למיפוי.</b></li>
+    <li>בוחרים טקסט (או "רשימת מילים" לתלמיד בתחילת הדרך). מי שנבדק רק ברשימת מילים נכנס אוטומטית לקבוצה הרביעית: הקניית קריאה.</li>
+    <li>ממלאים שגיאות, אופן הקריאה, פרוזודיה ושאלות ההבנה.</li>
+    <li>מסמנים הבנת הנשמע, אוצר מילים ושפה והבעה.</li>
+    <li>ממלאים <b>כתיבה</b> (תוכן, ארגון ולכידות, לשון). זה שדה חובה לשיוך.</li>
+    <li>שומרים. אפשר לתקן בלשונית "ההזנות שלי". <b>ההזנה האחרונה</b> של התלמיד באותה פעימה היא זו שנספרת.</li>
+  </ol>
+  <div class="cols">
+    <div class="col"><span class="tag">מה מקבלים</span><br>מייל עם התלמידים שלך מחולקים לקבוצות (רמה א', ב', ג' וקבוצה רביעית), עם המוקד המומלץ לעבודה בכל קבוצה, הערות כמו "נדרש לעבוד על ההנגנה", והתנועה מהפעימה הקודמת.</div>
+    <div class="col"><span class="tag">טרם שויך</span><br>אם חסר נתון, התלמיד מופיע ברשימה נפרדת עם פירוט מה להשלים. משלימים בהזנה חדשה באותה פעימה.</div>
+    <div class="col"><span class="tag">פרטיות</span><br>מזינים מספר תלמיד בלבד, בלי שם. המורה רואה רק את מה שהיא הזינה, ורק מהחשבון הארגוני.</div>
+  </div>
+  <div class="tip">השיוך לקבוצות הוא הצעה אוטומטית לפי הנתונים. ההחלטה הפדגוגית היא של המורה.</div>
 </section>
 
 <section class="step" id="s8">
