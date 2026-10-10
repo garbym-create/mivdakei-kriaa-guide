@@ -1975,6 +1975,40 @@ function msEnsureEmotionalColumn_() {
       'IF($AK' + r + '&lt;&gt;"","; "&amp;$AK' + r + ',""),3,400))']);
   }
   sh.getRange(MS_FIRST_ROW, 30, f.length, 1).setFormulas(f);   // AD
+  msEnsureEmotionalViews_(last);
+}
+
+/** מוסיף את ההיבטים הרגשיים גם ל"כרטיס תלמיד" (עמודות O ו-P) ול"מבט בית ספרי" (עמודה V) */
+function msEnsureEmotionalViews_(last) {
+  const ss = SpreadsheetApp.getActive();
+  const card = ss.getSheetByName('כרטיס תלמיד');
+  if (card) {
+    const n = card.getRange(8, 14, 12, 1).getFormulas();            // N8:N19, נוסחאות "לשון"
+    const make = col =&gt; n.map(r =&gt; [String(r[0]).replace(/\$W\$6:\$W\$(\d+)/, (m, num) =&gt; '$' + col + '$6:$' + col + '$' + num)]);
+    card.getRange(8, 15, 12, 1).setFormulas(make('AD'));            // O
+    card.getRange(8, 16, 12, 1).setFormulas(make('AK'));            // P
+    card.getRange(7, 14).copyTo(card.getRange(7, 15), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
+    card.getRange(7, 14).copyTo(card.getRange(7, 16), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
+    card.getRange(7, 15).setValue('הערה לקבוצה');
+    card.getRange(7, 16).setValue('היבטים רגשיים והתנהגותיים');
+    card.getRange(8, 14, 12, 1).copyTo(card.getRange(8, 15, 12, 2), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
+    card.setColumnWidth(15, 220); card.setColumnWidth(16, 260);
+  }
+  const school = ss.getSheetByName('מבט בית ספרי');
+  if (school) {
+    const q = "'" + MS_SHEET_TEXT + "'!";
+    const v = [];
+    for (let r = 8; r &lt;= 37; r++) {
+      v.push(['=IF($A' + r + '="","",SUMPRODUCT((' + q + '$B$6:$B$' + last + '=$A' + r + ')*(' + q + '$A$6:$A$' + last + '=$B$4)*(' +
+        q + '$F$6:$F$' + last + '=$D$4)*(LEN(' + q + '$AK$6:$AK$' + last + ')&gt;0)))']);
+    }
+    school.getRange(8, 22, 30, 1).setFormulas(v);                    // V8:V37
+    school.getRange(38, 22).setFormula('=SUM(V8:V37)');
+    school.getRange(7, 21).copyTo(school.getRange(7, 22), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
+    school.getRange(8, 21, 31, 1).copyTo(school.getRange(8, 22, 31, 1), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
+    school.getRange(7, 22).setValue('עם קשיים רגשיים/התנהגותיים');
+    school.setColumnWidth(22, 140);
+  }
 }
 
 /* ---------------- מיילים (פונקציות טהורות) ---------------- */
