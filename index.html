@@ -1721,6 +1721,25 @@ function mapNote_(level, weakness, written, prosody) {
   return n.join('; ');
 }
 
+/**
+ * היבטים רגשיים והתנהגותיים: מופיעים כהערה בלבד, ואינם משנים קבוצה (תוספת שלי, לפי בחירתך).
+ * מוצגים רק פריטים שסומנו כקשיים או לחיזוק.
+ */
+function mapEmotional_(rec) {
+  const n = [];
+  if (String(rec.siach || '').indexOf('ממעט') === 0) n.push('ממעט להשתתף בשיח');
+  if (rec.wattitude === 'נמנע מכתיבה') n.push('נמנע מכתיבה');
+  else if (rec.wattitude === 'כותב בהיסוס') n.push('כותב בהיסוס');
+  if (rec.m2 === 'לא') n.push('לא נהנה לקרוא ולכתוב');
+  if (rec.m3 === 'לא') n.push('ללא ביטחון אורייני');
+  if (rec.r1 === 'לחיזוק') n.push('חוויה רגשית לחיזוק');
+  if (rec.r2 === 'לחיזוק') n.push('תפיסות ועמדות לחיזוק');
+  if (rec.r3 === 'לחיזוק') n.push('היבט התנהגותי לחיזוק');
+  if (rec.a1 === 'לחיזוק' || rec.a2 === 'לחיזוק' || rec.a3 === 'לחיזוק') n.push('אסטרטגיות קריאה לחיזוק');
+  if (rec.kiyul === 'מתאם נמוך') n.push('הערכה עצמית רחוקה מההישגים');
+  return n.length ? 'רגשי והתנהגותי: ' + n.join(', ') : '';
+}
+
 /** תלמיד אחד בפעימה אחת. rec: הנתונים הגולמיים כפי שהם שמורים במקור */
 function mapStudent_(rec) {
   const f = {
@@ -1736,7 +1755,7 @@ function mapStudent_(rec) {
     lang: mapWritingOrdinal_('lang', rec.lang)
   };
   const missing = MAP_REQUIRED.filter(r =&gt; f[r[0]] === null || f[r[0]] === undefined).map(r =&gt; r[1]);
-  const out = { findings: f, missing: missing, textLevel: rec.textLevel || '' };
+  const out = { findings: f, missing: missing, textLevel: rec.textLevel || '', emotional: mapEmotional_(rec) };
   if (missing.length) { out.status = 'טרם שויך'; return out; }
   out.quality = mapReadingQuality_(f.accuracy, f.rate, f.prosody);
   out.weakness = mapLanguageWeakness_(f.listenComp, f.vocab, f.expr);
@@ -1840,7 +1859,9 @@ const MS_TEXT_SHEET_FIELDS = {
   listenTotal: 'הבנת הנשמע: סה"כ', listenMax: 'הבנת הנשמע: מתוך',
   lacksVocab: 'מגלה חוסר באוצר מילים ובידע לשוני', safa: 'שפה והבעה', siach: 'השתתפות בשיח האורייני',
   wgenre: 'כתיבה: הסוגה שנבדקה', whand: 'כתיבה: כתב', wspell: 'כתיבה: כתיב',
-  content: 'כתיבה: תוכן', org: 'כתיבה: ארגון ולכידות', lang: 'כתיבה: לשון', wattitude: 'כתיבה: עמדה כלפי כתיבה'
+  content: 'כתיבה: תוכן', org: 'כתיבה: ארגון ולכידות', lang: 'כתיבה: לשון', wattitude: 'כתיבה: עמדה כלפי כתיבה',
+  m2: 'נהנה לקרוא ולכתוב', m3: 'מגלה ביטחון אורייני', r1: 'חוויה רגשית', r2: 'תפיסות ועמדות', r3: 'היבט התנהגותי',
+  a1: 'קריאה מנוטרת הבנה', a2: 'ויסות וניהול אופן הקריאה', a3: 'הפעלת אסטרטגיות לפתרון בעיות', kiyul: 'כיול'
 };
 const MS_WORDS_SHEET_FIELDS = {
   teacher: 'מורה (מייל)', date: 'תאריך המבדק', cls: 'כיתה', sid: 'מספר תלמיד', updated: 'עודכן', pulse: 'פעימה', year: 'שנת לימודים'
@@ -1928,8 +1949,32 @@ function msSortRows_(rows) {
 /** מכין את שתי טבלאות ההזנה מהרשומות העדכניות */
 function msBuildTables_(latest) {
   const text = [], acq = [];
-  latest.forEach(r =&gt; (r.track === 'text' ? text : acq).push(r.track === 'text' ? msTextRow_(r) : msAcqRow_(r)));
-  return { text: msSortRows_(text), acq: msSortRows_(acq) };
+  // בשורות הטקסט העמודה ה-25 היא ההערה הרגשית והתנהגותית, והיא נכתבת בנפרד לעמודה AK
+  latest.forEach(r =&gt; (r.track === 'text' ? text : acq).push(r.track === 'text' ? msTextRow_(r).concat([mapEmotional_(r)]) : msAcqRow_(r)));
+  const sorted = msSortRows_(text);
+  return { text: sorted.map(r =&gt; r.slice(0, 24)), emo: sorted.map(r =&gt; [r[24]]), acq: msSortRows_(acq) };
+}
+
+/* ---------------- עמודת היבטים רגשיים (AK) ---------------- */
+
+const MS_COL_EMO = 37;   // AK
+
+/** מוסיף את עמודת AK ומעדכן את נוסחת "הערה לקבוצה" (AD) כך שתכלול אותה. בטוח להרצה חוזרת */
+function msEnsureEmotionalColumn_() {
+  const sh = SpreadsheetApp.getActive().getSheetByName(MS_SHEET_TEXT);
+  if (!sh) throw new Error('חסרה לשונית "' + MS_SHEET_TEXT + '".');
+  const last = sh.getMaxRows();
+  sh.getRange(5, MS_COL_EMO).setValue('היבטים רגשיים והתנהגותיים').setFontWeight('bold').setBackground('#eef3f9').setWrap(true);
+  sh.setColumnWidth(MS_COL_EMO, 260);
+  const f = [];
+  for (let r = MS_FIRST_ROW; r &lt;= last; r++) {
+    f.push(['=IF($AC' + r + '="","",MID(' +
+      'IF(AND($AC' + r + '="רמה א\'",$AA' + r + '="ניכרת"),"; להוסיף עבודת אוצר מילים","")&amp;' +
+      'IF($Z' + r + '="אינה מפותחת","; דגש על הבעה בכתב","")&amp;' +
+      'IF($K' + r + '&lt;&gt;"תקין","; נדרש לעבוד על ההנגנה","")&amp;' +
+      'IF($AK' + r + '&lt;&gt;"","; "&amp;$AK' + r + ',""),3,400))']);
+  }
+  sh.getRange(MS_FIRST_ROW, 30, f.length, 1).setFormulas(f);   // AD
 }
 
 /* ---------------- מיילים (פונקציות טהורות) ---------------- */
@@ -1965,7 +2010,7 @@ function msReportHtml_(rep) {
     const body = ids.length ? ids.map(id =&gt; {
       const r = by[id];
       const mv = r &amp;&amp; r.movement &amp;&amp; r.movement !== 'אין נתון להשוואה' &amp;&amp; r.movement !== 'ללא שינוי' ? r.movement : '';
-      const bits = r ? [r.note, mv].filter(Boolean) : [];
+      const bits = r ? [r.note, r.emotional, mv].filter(Boolean) : [];
       return '&lt;li&gt;' + msEsc_(id) + (bits.length ? ' &lt;span style="color:#555"&gt;(' + msEsc_(bits.join('; ')) + ')&lt;/span&gt;' : '') + '&lt;/li&gt;';
     }).join('') : '&lt;li style="color:#777"&gt;אין תלמידים&lt;/li&gt;';
     return '&lt;h4 style="margin:12px 0 4px"&gt;' + msEsc_(name) + ' (' + ids.length + ')&lt;/h4&gt;&lt;div style="color:#555;font-size:13px"&gt;' +
@@ -2066,6 +2111,10 @@ function msSync() {
     const got = msLatest_();
     const t = msBuildTables_(got.latest);
     msWrite_(MS_SHEET_TEXT, t.text, 24);
+    msEnsureEmotionalColumn_();
+    const shT = SpreadsheetApp.getActive().getSheetByName(MS_SHEET_TEXT);
+    shT.getRange(MS_FIRST_ROW, MS_COL_EMO, shT.getMaxRows() - (MS_FIRST_ROW - 1), 1).clearContent();
+    if (t.emo.length) shT.getRange(MS_FIRST_ROW, MS_COL_EMO, t.emo.length, 1).setValues(t.emo);
     msWrite_(MS_SHEET_ACQ, t.acq, 6);
     SpreadsheetApp.flush();
     ui.alert('עדכון מהמקור', 'הועתקו ' + t.text.length + ' הזנות מרמות ב-ו ו-' + t.acq.length + ' תלמידים בקבוצה הרביעית (רשימת מילים בלבד).' +
@@ -2119,7 +2168,7 @@ function msSendEmails() {
     <li>שומרים. אפשר לתקן בלשונית "ההזנות שלי". <b>ההזנה האחרונה</b> של התלמיד באותה פעימה היא זו שנספרת.</li>
   </ol>
   <div class="cols">
-    <div class="col"><span class="tag">מה מקבלים</span><br>מייל עם התלמידים שלך מחולקים לקבוצות (רמה א', ב', ג' וקבוצה רביעית), עם המוקד המומלץ לעבודה בכל קבוצה, הערות כמו "נדרש לעבוד על ההנגנה", והתנועה מהפעימה הקודמת.</div>
+    <div class="col"><span class="tag">מה מקבלים</span><br>מייל עם התלמידים שלך מחולקים לקבוצות (רמה א', ב', ג' וקבוצה רביעית), עם המוקד המומלץ לעבודה בכל קבוצה, הערות כמו "נדרש לעבוד על ההנגנה", והתנועה מהפעימה הקודמת. אם סומנו קשיים רגשיים או התנהגותיים (למשל "ממעט להשתתף בשיח" או "נמנע מכתיבה"), הם מופיעים כהערה, והקבוצה לא משתנה בגללם.</div>
     <div class="col"><span class="tag">טרם שויך</span><br>אם חסר נתון, התלמיד מופיע ברשימה נפרדת עם פירוט מה להשלים. משלימים בהזנה חדשה באותה פעימה.</div>
     <div class="col"><span class="tag">פרטיות</span><br>מזינים מספר תלמיד בלבד, בלי שם. המורה רואה רק את מה שהיא הזינה, ורק מהחשבון הארגוני.</div>
   </div>
